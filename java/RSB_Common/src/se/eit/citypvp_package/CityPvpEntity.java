@@ -84,10 +84,11 @@ public class CityPvpEntity extends GameBase {
 	public void doMoveAnimation(int dx, int dy)
 	{
 		if (state == 0) {state=2;}
-		if (state == 1) {state=3;}
+		else if (state == 1) {state=3;}
 		// Reverse
-		if (state == 2) {state=0;}
-		if (state == 3) {state=1;}
+		else if (state == 2) {state=0;}
+		else if (state == 3) {state=1;}
+		System.out.println("Brah chainging Animation "+state);
 	}
 	
 	
