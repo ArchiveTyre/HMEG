@@ -194,23 +194,28 @@ public class CityPvpEntity extends GameBase {
 				
 				// kolla om rutan man vill gå till är tom
 				
-				// Här flyttas denna entity
-				x=newX;
-				y=newY;
+				
 				
 				
 				// DO zaaa animation.
 				
-				if (newX > x)
+				if (newX > x )
 				{
-					state=1;
+				 if (state==1)
+				 {
+					 
+				 }
+				
+					
 				}
-				if (newX < x)
+				if (newX < x )
 				{	
-					state=0;
+					
 				}
 				
-				
+				// Här flyttas denna entity
+				x=newX;
+				y=newY;
 				
 				
 				
