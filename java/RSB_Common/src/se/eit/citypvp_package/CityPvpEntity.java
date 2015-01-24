@@ -11,7 +11,7 @@ public class CityPvpEntity extends GameBase {
 	public int Oldx = 0;
 	public int Oldy = 0;
 	// entity i entity (item) comer att display'a 
-	
+	public int state = 0;
 	public int stack = 0;
 	public int itemtype = 0;
 	
@@ -81,8 +81,23 @@ public class CityPvpEntity extends GameBase {
 	}
 	
 
+	public void doMoveAnimation(int dx, int dy)
+	{
+		if (state == 0) {state=2;}
+		if (state == 1) {state=3;}
+		// Reverse
+		if (state == 2) {state=0;}
+		if (state == 3) {state=1;}
+	}
+	
+	
 	public void move(int dx, int dy)
 	{
+		
+		
+		doMoveAnimation(dx, dy);
+		
+		
 		DbBase p = this.getParent();
 		
 		if (p instanceof CityPvpRoom)

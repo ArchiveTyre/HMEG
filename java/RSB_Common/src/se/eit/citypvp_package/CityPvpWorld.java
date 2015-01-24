@@ -73,52 +73,52 @@ public class CityPvpWorld extends WorldBase {
 		
 		
 		
-		CityPvpRoom secondRoom = new CityPvpRoom(spawnRoom, "secondRoom");
+		//CityPvpRoom secondRoom = new CityPvpRoom(spawnRoom, "secondRoom");
 		
-		secondRoom.x = 1;
-		secondRoom.y = 2;
-		secondRoom.outerX=4;
-		secondRoom.outerY=2;
+		//secondRoom.x = 1;
+	//	secondRoom.y = 2;
+	//	secondRoom.outerX=4;
+	//	secondRoom.outerY=2;
 		
-		secondRoom.itemtype = 6;
-		secondRoom.map[3][3] = 1;
-		secondRoom.map[0][1] = 1;
-		secondRoom.map[2][3] = 2;
-		secondRoom.map[10][10] = 2;
-		secondRoom.map[11][10] = 2;
-		secondRoom.map[12][10] = 2;
-		secondRoom.map[13][10] = 1;
-		secondRoom.map[14][10] = 1;
-		for(int x=0;x<secondRoom.xSectors;x++)
-		{
-			secondRoom.map[x][0] = 1;
-			secondRoom.map[x][secondRoom.ySectors-1] = 1;
-		}
-		for(int y=0;y<secondRoom.ySectors;y++)
-		{
-			secondRoom.map[0][y] = 1;
-			secondRoom.map[secondRoom.xSectors-1][y] = 1;
-		}
-		CityPvpRoom thirdRoom = new CityPvpRoom(spawnRoom, "thirdRoom");
-		
-		thirdRoom.x = 12;
-		thirdRoom.y = 8;
-		thirdRoom.xSectors = 8;
-		thirdRoom.ySectors = 8;
-		thirdRoom.itemtype = 6;
-		thirdRoom.map[3][3] = 1;
-		thirdRoom.map[0][1] = 1;
-		thirdRoom.map[2][3] = 2;
-		thirdRoom.map[10][10] = 2;
-		thirdRoom.map[11][10] = 2;
-		thirdRoom.map[12][10] = 2;
-		thirdRoom.map[13][10] = 1;
-		thirdRoom.map[14][10] = 1;
-		for(int y=0;y<thirdRoom.ySectors;y++)
-		{
-			thirdRoom.map[0][y] = 1;
-			thirdRoom.map[thirdRoom.xSectors-1][y] = 1;
-		}
+	//	secondRoom.itemtype = 6;
+	//	secondRoom.map[3][3] = 1;
+	//	secondRoom.map[0][1] = 1;
+	//	secondRoom.map[2][3] = 2;
+	//	secondRoom.map[10][10] = 2;
+	//	secondRoom.map[11][10] = 2;
+	//	secondRoom.map[12][10] = 2;
+	//	secondRoom.map[13][10] = 1;
+	//	secondRoom.map[14][10] = 1;
+	//	for(int x=0;x<secondRoom.xSectors;x++)
+	//	{
+	//		secondRoom.map[x][0] = 1;
+	//		secondRoom.map[x][secondRoom.ySectors-1] = 1;
+	//	}
+	//	for(int y=0;y<secondRoom.ySectors;y++)
+	//	{
+	//		secondRoom.map[0][y] = 1;
+	//		secondRoom.map[secondRoom.xSectors-1][y] = 1;
+	//	}
+	//	CityPvpRoom thirdRoom = new CityPvpRoom(spawnRoom, "thirdRoom");
+	//	
+	//	thirdRoom.x = 12;
+	//	thirdRoom.y = 8;
+	//	thirdRoom.xSectors = 8;
+	//	thirdRoom.ySectors = 8;
+	//	thirdRoom.itemtype = 6;
+	//	thirdRoom.map[3][3] = 1;
+	//	thirdRoom.map[0][1] = 1;
+	//	thirdRoom.map[2][3] = 2;
+	//	thirdRoom.map[10][10] = 2;
+	//	thirdRoom.map[11][10] = 2;
+	//	thirdRoom.map[12][10] = 2;
+	//	thirdRoom.map[13][10] = 1;
+	//	thirdRoom.map[14][10] = 1;
+	//	for(int y=0;y<thirdRoom.ySectors;y++)
+	//	{
+	//		thirdRoom.map[0][y] = 1;
+	//		thirdRoom.map[thirdRoom.xSectors-1][y] = 1;
+	//	}
 		
 	}
 	
