@@ -1,0 +1,45 @@
+
+
+See readme_using_eclipse.txt
+on how to set up this with eclipse.
+(It a bit outdated though, have learnt more about how to use eclipse since that was written.)
+
+
+
+How to add a new game.
+
+
+Server:
+
+
+In PlayerConnectionThread.startNewGame add the new game in typeNames and in "else if" list.
+In this example new game is called Blocky.
+
+
+
+Add a new class BlockyServer in RSB_Server that extends ServerBase.
+
+Look att EmpireServer to se how following methods are to be implemented:
+
+protected void join(BaseObj bo);
+protected String createAndStore(String worldName);
+
+
+
+In RSB_Common create new package.
+In that package create a class BlockyWorld that extends GameBase. Look at EmpireWorld how to do that.
+
+All objects that needs to be saved to disk or sent to clients need serializers!
+These are called readSelf and writeSelf. Look at existing classes.
+All variables in a class that needs to be saved to disk shall be added in readSelf and writeSelf.
+
+
+
+For all your game objects create a base class.
+Copy EmpireBase to BlockyBase.
+
+
+
+Client:
+
+Look at an existing game.

@@ -1,0 +1,14 @@
+
+
+
+To work on this project create a directory on local host, cd to that and do:
+
+	git clone ~/Desktop/twotb/git/RoboticsSandBox/ .
+or
+	git clone ssh://henrik@b3.eit.se/home/henrik/twotb/git/RoboticsSandBox .
+
+
+
+Then see doc/readme_using_eclipse.txt	
+
+
