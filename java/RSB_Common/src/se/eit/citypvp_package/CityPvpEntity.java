@@ -83,12 +83,15 @@ public class CityPvpEntity extends GameBase {
 
 	public void doMoveAnimation(int dx, int dy)
 	{
-		if (state == 0) {state=2;}
-		else if (state == 1) {state=3;}
-		// Reverse
-		else if (state == 2) {state=0;}
-		else if (state == 3) {state=1;}
-		System.out.println("Brah chainging Animation "+state);
+		
+		
+			/*if (state == 0) {state=2;}
+			else if (state == 1) {state=3;}
+			// Reverse
+			else if (state == 2) {state=0;}
+			else if (state == 3) {state=1;}
+			System.out.println("Brah chainging Animation "+state);
+			*/
 	}
 	
 	
@@ -194,6 +197,29 @@ public class CityPvpEntity extends GameBase {
 				// Här flyttas denna entity
 				x=newX;
 				y=newY;
+				
+				
+				// DO zaaa animation.
+				
+				if (newX > x)
+				{
+					state=1;
+				}
+				if (newX < x)
+				{	
+					state=0;
+				}
+				
+				
+				
+				
+				
+				if (state == 0) {state=2;}
+				else if (state == 1) {state=3;}
+				// Reverse
+				else if (state == 2) {state=0;}
+				else if (state == 3) {state=1;}
+				System.out.println("Brah chainging Animation "+state);
 		///////////////////////		/////////////////////move(0,CityPvpBlock.inBlockGravity(cpr.map[x][y]));
 		
 				// Uppdatera rutan den var i, och rutan den kommer till 
