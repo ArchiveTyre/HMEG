@@ -13,6 +13,7 @@ static int wood = 8;
 static int woodstairsleft = 9;
 static int woodstairsright = 10;
 static int controlPanel = 11;
+
 	
 	
 	static public String getBlockTexture(int id)

@@ -453,11 +453,11 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
     	return y*ySize;
 	}
 
-	public String getEntityTypeName(int itemtype)
+	public String getEntityTypeName(int itemtype, int motion)
 	{
 		switch(itemtype)
 		{
-  		case 0: return "inf";
+  		case 0: return "avatar_"+motion;
 		case 6: return "city";
 		default: return "unknown";
 		}
@@ -613,7 +613,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 							}
 							*/
 							{
-							final String imageName=getEntityTypeName(e.itemtype);
+							final String imageName=getEntityTypeName(e.itemtype, e.state);
 							stc.writeLine("AddImg "+imageName + " "+px+" "+py+" "+xSize*eXSize+" "+ ySize*eYSize);
 							}
 							
@@ -625,7 +625,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 						
 						else
 						{	
-							final String imageName=getEntityTypeName(e.itemtype);
+							final String imageName=getEntityTypeName(e.itemtype, e.state);
 							stc.writeLine("AddImg "+imageName + " "+px+" "+py+" "+xSize*eXSize+" "+ ySize*eYSize);
 						}
 	
