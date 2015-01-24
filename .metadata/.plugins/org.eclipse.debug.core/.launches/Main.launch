@@ -7,6 +7,6 @@
 <listEntry value="1"/>
 </listAttribute>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="se.eit.rsb_server_pkg.Main"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-p 8080 -d /home/owner/HMEG/web -s /home/owner/saved_games -w"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-p 8080 -d /home/alex/git/HMEG/web -s /home/alex/saved_games -w"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="RoboticsSandBox"/>
 </launchConfiguration>
