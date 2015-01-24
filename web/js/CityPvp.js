@@ -50,7 +50,7 @@ function cityPvpOpen(headingText)
 	var ctx = canvas.getContext('2d');
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-	ctx.fillStyle="#FF0000";
+	ctx.fillStyle="#CCEEFF";
 	ctx.fillRect(0,0,canvas.width, canvas.height);
 
 	ctx.moveTo(0,0);
@@ -211,7 +211,7 @@ function cityPvpOnMessage(evt)
 		var ctx = canvas.getContext('2d');
 		ctx.clearRect(x, y, w, h);
 
-		ctx.fillStyle="#FF0000";
+		ctx.fillStyle="#CCEEFF";
 		ctx.fillRect(x, y, w, h);
 
 	}

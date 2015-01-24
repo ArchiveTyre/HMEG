@@ -5,25 +5,6 @@ import se.eit.citypvp_package.CityPvpAvatar;
 import se.eit.citypvp_package.CityPvpEntity;
 import se.eit.citypvp_package.CityPvpRoom;
 import se.eit.citypvp_package.CityPvpWorld;
-import se.eit.empire_package.EmpireStatesList;
-import se.eit.empire_package.EmpireOrder;
-import se.eit.empire_package.EmpireRoundBuffer;
-import se.eit.empire_package.EmpireSector;
-import se.eit.empire_package.EmpireState;
-import se.eit.empire_package.EmpireTerrain;
-import se.eit.empire_package.EmpireUnit;
-import se.eit.empire_package.EmpireUnitType;
-import se.eit.empire_package.EmpireUnitTypeList;
-import se.eit.empire_package.EmpireWorld;
-/*import se.eit.robogame_package.RoboGameAvatar;
-import se.eit.robogame_package.RoboGameBlockRoom;
-import se.eit.robogame_package.RoboGameMassObj;
-import se.eit.robogame_package.RoboGameRoom;
-import se.eit.robogame_package.RoboGameSphere;
-import se.eit.robogame_package.RoboGameSphereWithMass;
-import se.eit.robogame_package.RoboGameSubSphere;
-import se.eit.robogame_package.RoboGameWorld;
-import se.eit.robogame_package.RoboGameWorldRoot;*/
 import se.eit.rsb_package.ChatRoomWorld;
 import se.eit.rsb_package.Player;
 import se.eit.rsb_package.WorldBase;
@@ -88,54 +69,6 @@ public class RsbFactory {
 					static_error("unknown object "+t);
 				}
 				break;				
-			}
-			case 'E':
-			{				
-				if (t.equalsIgnoreCase("EmpireWorld"))
-				{
-					bo = new EmpireWorld();
-				}
-				else if (t.equalsIgnoreCase("EmpireTerrain"))
-				{
-					bo = new EmpireTerrain();
-				}			
-				else if ((t.equalsIgnoreCase("EmpireNation")) || (t.equalsIgnoreCase("EmpireState")))
-				{
-					bo = new EmpireState();
-				}
-				else if ((t.equalsIgnoreCase("EmpireNationsList")) || (t.equalsIgnoreCase("EmpireStatesList")))
-				{
-					bo = new EmpireStatesList();
-				}
-				else if (t.equalsIgnoreCase("EmpireUnit"))
-				{
-					bo = new EmpireUnit();
-				}
-				else if (t.equalsIgnoreCase("EmpireSector"))
-				{
-					bo = new EmpireSector();
-				}
-				else if (t.equalsIgnoreCase("EmpireOrder"))
-				{
-					bo = new EmpireOrder();
-				}
-				else if (t.equalsIgnoreCase("EmpireUnitTypeList"))
-				{
-					bo = new EmpireUnitTypeList();
-				}
-				else if (t.equalsIgnoreCase("EmpireUnitType"))
-				{
-					bo = new EmpireUnitType();
-				}
-				else if (t.equalsIgnoreCase("EmpireRoundBuffer"))
-				{
-					bo = new EmpireRoundBuffer();
-				}				
-				else
-				{
-					static_error("unknown object '"+t+"'");
-				}
-				break;	
 			}
 			case 'P':
 			{

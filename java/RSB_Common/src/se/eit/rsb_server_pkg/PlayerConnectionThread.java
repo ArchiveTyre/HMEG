@@ -25,7 +25,6 @@ import java.util.Random;
 import se.eit.rsb_package.*;
 
 // Should investigate if these imports can be avoided.
-import se.eit.empire_package.*;
 import se.eit.citypvp_package.*;
 //import se.eit.robogame_package.*;
 import se.eit.db_package.*;
@@ -290,12 +289,12 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
 
 					    				stc.alertBox("player_reg_accepted", "player reg accepted");
 					    				
-						    			int r=SendEmail.sendEmailTo(player.emailAddress, "mpe", "Hello " + player.getName()+ "\nWelcome to MultiPlayerEmpire\nwww.eit.se/hb/mpe\nActivation code: "+player.emailVerificationCode +"\n\n");
+						    			/*int r=SendEmail.sendEmailTo(player.emailAddress, "mpe", "Hello " + player.getName()+ "\nWelcome to MultiPlayerEmpire\nwww.eit.se/hb/mpe\nActivation code: "+player.emailVerificationCode +"\n\n");
 
 						    			if (r!=0)
 						    			{
 						    				stc.alertBox("email_failed", "sending email did not seem to work"); 
-						    			}
+						    			}*/
 					    				
 					    				return;
 					    			}
@@ -352,12 +351,12 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
 	    		{
 	    			stc.alertBox("player_found", "username " + player.getName() + " found, will send email (it can take a few minutes, if still not found check spam filters)");
 	    			
-	    			int r=SendEmail.sendEmailTo(player.emailAddress, "your pw", player.password);
+	    			/*int r=SendEmail.sendEmailTo(player.emailAddress, "your pw", player.password);
 
 	    			if (r!=0)
 	    			{
 	    				stc.alertBox("email_failed", "sending email did not seem to work"); 
-	    			}
+	    			}*/
 	    			
 	        		break;
 	    		}
@@ -425,11 +424,11 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
     					player.emailAddress=ea;
     					player.saveRecursive(config);
 
-    	    			int r2=SendEmail.sendEmailTo(player.emailAddress, "mpe", "Hello " + player.getName()+ "\nWelcome to MultiPlayerEmpire\nwww.eit.se/hb/mpe\nActivation code: "+player.emailVerificationCode +"\n\n");
+    	    			/*int r2=SendEmail.sendEmailTo(player.emailAddress, "mpe", "Hello " + player.getName()+ "\nWelcome to MultiPlayerEmpire\nwww.eit.se/hb/mpe\nActivation code: "+player.emailVerificationCode +"\n\n");
     	    			if (r2!=0)
     	    			{
     	    				stc.alertBox("email_failed", "sending email did not seem to work"); 
-    	    			}
+    	    			}*/
         				return;
     				}
     				else
@@ -517,10 +516,10 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
     {
     	//String typeOfGame=null;
     	debug("startNewGame");
-		Object typeNames[]=new String[3];  
+		Object typeNames[]=new String[1];  
 		// List all supported games here. If adding one here, add it in playWorld also.
-		typeNames[0]="Empire";
-		typeNames[1]="CityPvp";
+		typeNames[0]="CityPvp";
+		//typeNames[1]="Empire";
 		//typeNames[2]="RoboGame";
 		//typeNames[3]="ChatRoom";
 		//typeNames[4]="TextAdventure";
@@ -540,13 +539,8 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
 		{
 			switch(typeOfGame)
 			{
+ 
     			case 0:
-    			{
-    				EmpireServer s=new EmpireServer(config, player, stc);
-    			    worldName=s.createAndStore();    				
-    			    break;
-    			}
-    			case 1:
     			{
     				CityPvpServer s=new CityPvpServer(config, player, stc);
     			    worldName=s.createAndStore();    				
@@ -663,16 +657,6 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
     			TextAdventureServer cs=new TextAdventureServer(config, player, stc);
     			cs.join(w);
     		}
-    		else if (w instanceof EmpireWorld)
-    		{
-    			EmpireServer es=new EmpireServer(config, player, stc);
-    			es.join(w);	    			
-    		}	    	
-    		/*else if ((w instanceof RoboGameWorld) && (stc.dontUseRef==false))
-    		{
-    			RoboGameServer rgc=new RoboGameServer(config, player, stc);
-    			rgc.join(w);
-    		}*/
     		else  if ((w instanceof MibWorld) && (stc.dontUseRef==false))
     		{
     			MibServer mib=new MibServer(config, player, stc);
