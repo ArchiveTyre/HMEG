@@ -96,18 +96,18 @@ function cityPvpAddEventListenerForMyCanvas()
 		var mouseUpPos = cityPvpGetMousePos(canvas, evt);
                 
 		//alert('mousedown '+sMessage);
-		if ((mouseDownPos.x == mouseUpPos.x)  && (mouseDownPos.y == mouseUpPos.y))
+		//if ((mouseDownPos.x == mouseUpPos.x)  && (mouseDownPos.y == mouseUpPos.y))
 		{
 			console.log('Sector click position: ' + mouseUpPos.x + ',' + mouseUpPos.y);
                         websocket.send('mouseClick "'+mouseUpPos.x + ' ' + mouseUpPos.y+'"');
 
 		}
-		else
+		/*else
 		{
 			console.log('Sector down position: ' + mouseDownPos.x + ',' + mouseDownPos.y);
 			console.log('Sector up position: ' + mouseUpPos.x + ',' + mouseUpPos.y);
                         websocket.send('mouseDrag "'+mouseDownPos.x + ' ' + mouseDownPos.y+' '+mouseUpPos.x + ' ' + mouseUpPos.y+'"');
-		}
+		}*/
 		delete mouseDownPos;
 	}, false);
 
