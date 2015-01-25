@@ -243,6 +243,45 @@ public class CityPvpEntity extends GameBase {
 			}
 		}
 	}
+
+	public CityPvpEntity findItem(int id)
+	{
+		if (this.listOfStoredObjects!=null)
+		{
+			for(DbStorable ds: this.listOfStoredObjects)
+			{
+				if (ds instanceof CityPvpEntity)
+				{
+					CityPvpEntity cpe=(CityPvpEntity)ds;
+					if (cpe.itemtype==id)
+					{
+						return cpe;
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	
+	public int haveItem(int id)
+	{
+		int count=0;
+		for(DbStorable ds: this.listOfStoredObjects)
+		{
+			if (ds instanceof CityPvpEntity)
+			{
+				CityPvpEntity cpe=(CityPvpEntity)ds;
+				if (cpe.itemtype==id)
+				{
+					count += cpe.stack ;
+				}
+			}
+		}
+		return count;
+	}
+	
+	
 //	en natt natt natt min båt jag styrde
 	public void giveItem(int id , int count)
 	{
@@ -262,33 +301,48 @@ public class CityPvpEntity extends GameBase {
 		//	}
 		//}	
 
-		
-		
-		CityPvpEntity cpe = new CityPvpEntity ();
-		cpe.itemtype = id;
-		cpe.stack = count;
 		DbRoot ro=this.getDbRoot();
+		CityPvpEntity cpe = this.findItem(id);
 		
-		
-		
-		
-		try
+		if (cpe!=null)
 		{
-			ro.lockWrite();
-			cpe.linkSelf(this);			
+			// Increase existing object
+			try
+			{
+				ro.lockWrite();
+				cpe.stack+=1;			
+			}
+			finally
+			{
+				ro.unlockWrite();
+			}
+			
 		}
-		finally
-		{
-			ro.unlockWrite();
+		else
+		{	
+			// Create a new object
+			cpe = new CityPvpEntity ();
+			cpe.itemtype = id;
+			cpe.stack = count;
+			
+			try
+			{
+				ro.lockWrite();
+				cpe.linkSelf(this);			
+			}
+			finally
+			{
+				ro.unlockWrite();
+			}
+	
+			// assign coordinates to the new object.
+			// Objects in the inventory are placed from upper left according to index
+			if (this instanceof CityPvpRoom)
+			{
+				CityPvpRoom cpr=(CityPvpRoom)this;
+				cpr.x = cpe.getIndex()%cpr.xSectors;
+				cpr.y = cpe.getIndex()/cpr.xSectors;
+			}
 		}
-
-		// assign coordinates to the new object.
-		if (this instanceof CityPvpRoom)
-		{
-			CityPvpRoom cpr=(CityPvpRoom)this;
-			cpr.x = cpe.getIndex()%cpr.xSectors;
-			cpr.y = cpe.getIndex()/cpr.xSectors;
-		}
-
 	}
 }

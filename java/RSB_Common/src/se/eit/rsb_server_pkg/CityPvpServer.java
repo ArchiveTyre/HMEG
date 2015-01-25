@@ -338,6 +338,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 	     	        	a.move(0,1);
 						break;
 	     	       case 'g':
+	     	    	   
 	     	    	    avatar.giveItem(0, 1);
 	     	        	avatar.giveItem(1, 2);
 	     	        	avatar.giveItem(2, 3);
