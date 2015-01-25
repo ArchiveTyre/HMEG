@@ -36,6 +36,7 @@ function cityPvpOpen(headingText)
 	newPage+='<audio id="horseAudio">'; // width="320" height="176"
 	//newPage+='  <source src="mov_bbb.mp4" type="video/mp4">';
 	newPage+='  <source src="horse.ogg" type="audio/ogg">';
+	//newPage+='  <source src="Min_lat_1.m4a" type="audio/m4a">';
 	newPage+='  Your browser does not support HTML5 video.';
 	newPage+='</audio>';
 
