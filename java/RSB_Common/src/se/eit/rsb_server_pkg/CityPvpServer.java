@@ -207,6 +207,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 				// så här kollar vi vad klienten ville
 				if (cmd.equals("cancel"))
 				{
+					// Klienten vill sluta
 					break;
 				}
 				else if (cmd.equals("textMsg")) // klienten ville säga nått
@@ -220,6 +221,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 				}
 				else if (cmd.equals("mouseClick"))
 				{
+					// Klienten har klickat på något
 					String m=wr.readString();
 					//debug("mouseClick: "+m);
 					
@@ -230,6 +232,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 
 	     	        if (state == 2)
 	     	        {
+	     	        	// Om vi är i detta state så har klienten klickat i sitt inventory
 		     	        int xf = mouseX/(xSize+4);     	        		
 		     	        int yf = mouseY/(ySize+4);
 		     	        
@@ -246,6 +249,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 	     	        }
 	     	        else
 	     	        {	
+	     	        	// Detta var nog ett klick på kartan
 	     	        	int screenX=mouseX/xSize;
 	     	        	int screenY=mouseY/xSize;
 	     	        	int worldX=translateScreenToWorldX(avatar, screenX);
@@ -253,6 +257,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 	     	        	System.out.println("BUILDHERE");
 	     	        	if (currentbuilding == 0)
 	     	        	{
+	     	        		// Klienten vill ta bort något
 	     	        		System.out.println("BUILDREMOVE ");
 	     	        		int t = getCurrentRoom().getTile(worldX, worldY);
 	     	        		if (t != -1)
@@ -265,7 +270,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 	     	        	}
 		     	        else
 	     	        	{
-	     	        
+		     	        	// Klienten vill lägga till något
 	     	        		System.out.println("BUILD");
 	     	        		if (
 	     	        				CityPvpBlock.cost_mineral(currentbuilding) <= avatar.fill_mineral 			 &&
@@ -279,8 +284,10 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 	     	        			avatar.fill_wood    -= CityPvpBlock.cost_wood(currentbuilding);
 	     	        			avatar.fill_stone   -= CityPvpBlock.cost_stone(currentbuilding) ;
 	     	        		}
-     	        		
-     	        			
+	     	        		else
+	     	        		{
+	     	        			debug("Client does not have enough resources");
+	     	        		}
 	     	        	}
      	        		
 	     	        		
@@ -338,7 +345,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 	     	        	a.move(0,1);
 						break;
 	     	       case 'g':
-	     	    	   
+	     	    	    // This is the cheat button, when user press it give more resources
 	     	    	    avatar.giveItem(0, 1);
 	     	        	avatar.giveItem(1, 2);
 	     	        	avatar.giveItem(2, 3);
@@ -348,8 +355,12 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 	     	        	avatar.giveItem(9, 7);
 	     	        	avatar.giveItem(10, 8);
 	     	        	avatar.giveItem(11, 9);
+	     	        	avatar.fill_mineral+=1;
+	     	        	avatar.fill_stone+=1;
+	     	        	avatar.fill_wood+=1;
 						break;	
 	     	       case 'e':
+	     	    	    // This is the open or close inventory button
 	     	    	    debug("keypress e");
 	     	    	    if (state==0)
 	     	    	    {
@@ -505,7 +516,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 	
 	//	return;
 	
-	// metoden här blir anropad av spelvärldsklassen när nått nytt har hänt.
+	// metoden här blir anropad av "spelvärldsklassen" när nått nytt har hänt.
 	public void notify(int subscribersRef, int sendersRef)
 	{
 		try {
@@ -597,6 +608,10 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 								stc.writeLine("AddImg "+CityPvpBlock.getBlockTexture(cr.map[x][y])+" "+sx*xSize+" "+sy*ySize+" "+xSize+" "+ ySize);
 							}
 						}
+					}
+					else
+					{
+						stc.writeLine("TileOutsideMap "+sx*xSize+" "+sy*ySize+" "+xSize+" "+ ySize);
 					}
 				}
 			}	

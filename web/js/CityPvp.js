@@ -224,6 +224,21 @@ function cityPvpOnMessage(evt)
 		ctx.fillRect(x, y, w, h);
 
 	}
+	else if (cmd=="TileOutsideMap")
+	{
+		var x=arg[1];
+		var y=arg[2];
+		var w=arg[3];
+		var h=arg[4];
+
+		var canvas = document.getElementById('myCanvas');
+		var ctx = canvas.getContext('2d');
+		ctx.clearRect(x, y, w, h);
+
+		ctx.fillStyle="#F0F0F0";
+		ctx.fillRect(x, y, w, h);
+
+	}
 	else if (cmd=="PlayAudio")
 	{
 		var x=arg[1];
