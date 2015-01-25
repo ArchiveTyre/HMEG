@@ -14,6 +14,9 @@ public class CityPvpEntity extends GameBase {
 	public int state = 0;
 	public int stack = 0;
 	public int itemtype = 0;
+	public int fill_wood = 0;
+	public int fill_stone = 0;
+	public int fill_mineral = 0;
 	
 	
 	
@@ -201,16 +204,19 @@ public class CityPvpEntity extends GameBase {
 				
 				if (newX > x )
 				{
-				 if (state==1)
+				 if (state==2)
 				 {
-					 
+					state = 1; 
 				 }
 				
 					
 				}
 				if (newX < x )
 				{	
-					
+					if (state==1)
+					 {
+						state = 2; 
+					 }
 				}
 				
 				// Här flyttas denna entity

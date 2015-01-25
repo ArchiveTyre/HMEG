@@ -91,7 +91,14 @@ public class CityPvpRoom extends CityPvpEntity{
 			}
 		}		
 	}
-
+	public int getTile (int x, int y)
+	{
+		if ( ((x<xSectors) && (y<ySectors)) && ((x>-1)&&(y>-1)) ) 
+        {
+	      return map[x][y];
+        }
+		return -1;
+	}
 	public void changeTile(int x, int y, int id)
 	{
         if ( ((x<xSectors) && (y<ySectors)) && ((x>-1)&&(y>-1)) ) 

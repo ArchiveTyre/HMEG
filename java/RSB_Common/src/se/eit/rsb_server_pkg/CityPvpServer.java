@@ -250,9 +250,44 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 	     	        	int screenY=mouseY/xSize;
 	     	        	int worldX=translateScreenToWorldX(avatar, screenX);
 	     	        	int worldY=translateScreenToWorldY(avatar, screenY);
-	     	        	getCurrentRoom().changeTile(worldX, worldY, currentbuilding);
-	     	        }
+	     	        	System.out.println("BUILDHERE");
+	     	        	if (currentbuilding == 0)
+	     	        	{
+	     	        		System.out.println("BUILDREMOVE ");
+	     	        		int t = getCurrentRoom().getTile(worldX, worldY);
+	     	        		if (t != -1)
+	     	        		{
+	     	        			getCurrentRoom().changeTile(worldX, worldY, 0);	
+	     	        			avatar.fill_mineral +=  CityPvpBlock.loot_mineral(t);
+	     	        			avatar.fill_stone +=  CityPvpBlock.loot_stone(t);
+	     	        			avatar.fill_wood +=  CityPvpBlock.loot_wood(t);
+	     	        		}
+	     	        	}
+		     	        else
+	     	        	{
 	     	        
+	     	        		System.out.println("BUILD");
+	     	        		if (
+	     	        				CityPvpBlock.cost_mineral(currentbuilding) <= avatar.fill_mineral 			 &&
+	     	        				CityPvpBlock.cost_wood(currentbuilding) <= avatar.fill_wood 					 && 
+	     	        				CityPvpBlock.cost_stone(currentbuilding) <= avatar.fill_stone					 )
+	     	        				  
+	     	        		{
+	     	        			System.out.println("BUILDITTT");
+	     	        			getCurrentRoom().changeTile(worldX, worldY, currentbuilding);
+	     	        			avatar.fill_mineral -= CityPvpBlock.cost_mineral(currentbuilding);
+	     	        			avatar.fill_wood    -= CityPvpBlock.cost_wood(currentbuilding);
+	     	        			avatar.fill_stone   -= CityPvpBlock.cost_stone(currentbuilding) ;
+	     	        		}
+     	        		
+     	        			
+	     	        	}
+     	        		
+	     	        		
+	     	        	
+	     	        	//getCurrentRoom().changeTile(worldX, worldY, currentbuilding);
+	     	        
+	     	        }
 	     	        
 				}
 				else if (cmd.equals("mouseDrag"))

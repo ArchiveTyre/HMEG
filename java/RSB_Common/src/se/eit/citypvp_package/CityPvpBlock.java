@@ -13,6 +13,8 @@ static int wood = 8;
 static int woodstairsleft = 9;
 static int woodstairsright = 10;
 static int controlPanel = 11;
+static int log = 12;
+
 
 	
 	
@@ -58,7 +60,11 @@ static int controlPanel = 11;
 		if (id == controlPanel)	
 		{
 			return "controlpanel";	
-		}		
+		}
+		if (id == log)
+		{
+			return "log";
+		}
 		return "unknown";
 
 		
@@ -72,8 +78,9 @@ static int controlPanel = 11;
 		}
 		return false;
 	}
-	static public int inBlockGravity(int id)
-	{
+
+	
+		public static int inBlockGravity(int id) {
 		if (id == ladder)
 		{
 			return 0;
@@ -84,8 +91,13 @@ static int controlPanel = 11;
 		}
 		return 1;
 	}
+	static public int loot_wood (int id) { return 1;}
+	static public int loot_stone (int id){return 1; }
+	static public int loot_mineral (int id){return 1;}
 	
-	
+	static public int cost_wood (int id) { return 1;}
+	static public int cost_stone (int id){return 1; }
+	static public int cost_mineral (int id){return 1;}
 	
 	
 	
