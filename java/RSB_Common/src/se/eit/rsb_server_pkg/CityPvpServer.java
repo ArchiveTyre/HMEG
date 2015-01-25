@@ -544,6 +544,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 			
 			// adda scrolling
 			
+			// Börja med att rensa hela skärmen (=canvas hos clienten)
 			//if (sendersRef==-2)
 			//map = new int[cr.xSectors][cr.ySectors];
 			stc.writeLine("ClearTile "+0+" "+0+" "+ScreenSizeX*xSize+" "+ ScreenSizeY*ySize);
@@ -583,10 +584,15 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 		
 			//stc.writeLine("clear");
 			
-	
+			// Rita en ram runt rummet, hela rummet kanske inte syns på kartan 
+			/*for(int x=0;x<cr.xSectors;x++)
+			{	
+				
+				
+			}*/
 	
 		
-			// kolla vad som ändrats i w.map jämfört med egna kopian av map
+			// kolla vad som ändrats i w.map jämfört med egna kopian av map, eller gör man det?
 			// Rummets egna "rutor"
 			for(int x=0;x<cr.xSectors;x++)
 			{	
@@ -601,7 +607,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 							//map[sx][sy]=cr.map[x][y];
 							if (cr.map[x][y]==0)
 							{
-								//stc.writeLine("ClearTile "+sx*xSize+" "+sy*ySize+" "+xSize+" "+ ySize);
+								stc.writeLine("EmptyTile "+sx*xSize+" "+sy*ySize+" "+xSize+" "+ ySize);
 							}
 							else
 							{
@@ -611,10 +617,14 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 					}
 					else
 					{
-						stc.writeLine("TileOutsideMap "+sx*xSize+" "+sy*ySize+" "+xSize+" "+ ySize);
+						// Denna del av kartan är utanför skärmen/canvas hos klienten och kan inte ses
+						//stc.writeLine("TileOutsideMap "+sx*xSize+" "+sy*ySize+" "+xSize+" "+ ySize);
 					}
 				}
 			}	
+
+			
+			
 			
 			// Här skriver man ut entitys
 			DbBase[] list = cr.getListOfSubObjectsThreadSafe();
@@ -702,6 +712,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 	
 			if (state==2)	
 			{
+				// Draw also the inventory list
 				drawState2();
 			}
 		} catch (IOException e) {

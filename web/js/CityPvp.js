@@ -209,7 +209,7 @@ function cityPvpOnMessage(evt)
 
 
 	}
-	else if (cmd=="ClearTile")
+	else if (cmd=="EmptyTile")
 	{
 		var x=arg[1];
 		var y=arg[2];
@@ -224,7 +224,7 @@ function cityPvpOnMessage(evt)
 		ctx.fillRect(x, y, w, h);
 
 	}
-	else if (cmd=="TileOutsideMap")
+	else if (cmd=="ClearTile")
 	{
 		var x=arg[1];
 		var y=arg[2];
