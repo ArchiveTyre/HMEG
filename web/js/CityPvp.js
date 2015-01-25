@@ -33,7 +33,7 @@ function cityPvpOpen(headingText)
 	newPage+='<input type="button" value=enter onclick="cityPvpSendText(\'inputText\')">';
 	newPage+='<input type="button" value=cancel onclick="cityPvpTextCancel()"><br>';
 
-	newPage+='<audio id="myAudio">'; // width="320" height="176"
+	newPage+='<audio id="horseAudio">'; // width="320" height="176"
 	//newPage+='  <source src="mov_bbb.mp4" type="video/mp4">';
 	newPage+='  <source src="horse.ogg" type="audio/ogg">';
 	newPage+='  Your browser does not support HTML5 video.';
@@ -56,7 +56,7 @@ function cityPvpOpen(headingText)
 	var ctx = canvas.getContext('2d');
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-	ctx.fillStyle="#CCEEFF";
+	ctx.fillStyle="#F0F0F0";
 	ctx.fillRect(0,0,canvas.width, canvas.height);
 
 	ctx.moveTo(0,0);
@@ -148,7 +148,7 @@ function cityPvpOnMessage(evt)
 	}
 	else if (cmd=="TextBoxAppend")
 	{
-		var a = document.getElementById("myAudio"); 
+		var a = document.getElementById("horseAudio"); 
 		a.play();
 
 		cityPvpTextBoxAppend(arg[1]);
@@ -226,7 +226,8 @@ function cityPvpOnMessage(evt)
 	}
 	else if (cmd=="PlayAudio")
 	{
-		var a = document.getElementById("myAudio"); 
+		var x=arg[1];
+		var a = document.getElementById("horseAudio"); 
 		a.play();
 	}
 }
