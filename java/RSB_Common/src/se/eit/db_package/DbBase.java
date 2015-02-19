@@ -455,6 +455,13 @@ public abstract class DbBase {
 	public abstract long getGameTime();
 	
 	public abstract String toShortFormatedString();
+	
+	public abstract boolean isThisOrAnyParentAnIdList();
+
+	public boolean isVisibleTo(DbBase observingObj)
+	{
+		return true;
+	}
 
 }
 

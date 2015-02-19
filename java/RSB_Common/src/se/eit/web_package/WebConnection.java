@@ -416,7 +416,7 @@ public class WebConnection implements Runnable //extends Thread
 	}
 	
 	// Translate a time in ascii string format "Fri, 31 Dec 1999 23:59:59 GMT" 
-	// to a long with unit milliseconds
+	// to a long with unit milliseconds, returns zero if if failed.
 	public long parseTime(String time)
 	{
 		try {    
@@ -424,7 +424,7 @@ public class WebConnection implements Runnable //extends Thread
 			Date date=sdf.parse(time);
 			return date.getTime();
 		} catch (Exception e) {
-			debug("Exception '"+e+"' in '"+time+"'");
+			debug("parseTime: Exception '"+e+"' in '"+time+"'");
 			//e.printStackTrace();
 		}		
 		return 0;
@@ -503,27 +503,24 @@ public class WebConnection implements Runnable //extends Thread
 		if ((hs.ifModifiedSince!=null) && (hs.ifModifiedSince.length()>0))
 		{
 			final long ims = parseTime(hs.ifModifiedSince);
-			if (ims+999>=webFileData.lastModified) // +999 since web browser have only seconds not the milliseconds
+			final long imss= ims/1000; // truncate to seconds since web browser have only seconds not the milliseconds
+			final long lm = webFileData.lastModified/1000; 
+			if (imss>=lm)
 			{
 				// the file has not been modified since so we shall not send the file, just tell client that.
-				debug(filename + " is not modified '"+hs.ifModifiedSince+"' "+ims+" "+webFileData.lastModified+" "+System.currentTimeMillis());
+				debug("not modified, file "+ filename + ", since '"+hs.ifModifiedSince+"', "+imss+", lm "+lm+", sys time "+System.currentTimeMillis()/1000);
 				
 				// TODO: "304 Not Modified" does not always work. Sometimes I must comment out this line. But Why?
-				/*
-				if ((!filename.endsWith(".html")) && (!filename.endsWith(".js")))
-				{
-					return reply("304 Not Modified",null , keepAlive); 
-				}
-				*/
+				// return reply("304 Not Modified",null , keepAlive); 
 			}
 			else
 			{
-				debug(filename+" is modified '"+hs.ifModifiedSince+"' "+ims+" "+webFileData.lastModified+" "+System.currentTimeMillis());
+				debug("modified, file "+ filename + ", since '"+hs.ifModifiedSince+"', "+imss+", lm "+lm+", sys time "+System.currentTimeMillis()/1000);
 			}
 		}
 		else
 		{
-			debug(filename+" no ifModifiedSince");
+			debug("no ifModifiedSince, file "+filename);
 		}
 		
 		// not sure on this one

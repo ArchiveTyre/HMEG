@@ -7,6 +7,8 @@ import se.eit.citypvp_package.CityPvpRoom;
 import se.eit.citypvp_package.CityPvpWorld;
 import se.eit.rsb_package.ChatRoomWorld;
 import se.eit.rsb_package.Player;
+import se.eit.rsb_package.RsbBigBitMap;
+import se.eit.rsb_package.RsbLong;
 import se.eit.rsb_package.WorldBase;
 
 public class RsbFactory {
@@ -82,50 +84,22 @@ public class RsbFactory {
 				}
 				break;				
 			}
-			/*case 'R':
+			case 'R':
 			{
-				if (t.equalsIgnoreCase("RoboGameRoom"))
+				if (t.equalsIgnoreCase("RsbLong"))
 				{
-					bo = new RoboGameRoom();
+					bo = new RsbLong();
 				}
-				else if (t.equalsIgnoreCase("RoboGameBlockRoom"))
+				else if (t.equalsIgnoreCase("RsbBigBitMap"))
 				{
-					bo = new RoboGameBlockRoom();
-				}
-				else if (t.equalsIgnoreCase("RoboGameSubSphere"))
-				{
-					bo = new RoboGameSubSphere();
-				}
-				else if (t.equalsIgnoreCase("RoboGameSphere"))
-				{
-					bo = new RoboGameSphere();
-				}
-				else if (t.equalsIgnoreCase("RoboGameMassObj"))
-				{
-					bo = new RoboGameMassObj();
-				}
-				else if (t.equalsIgnoreCase("RoboGameSphereWithMass"))
-				{
-					bo = new RoboGameSphereWithMass();
-				}
-				else if (t.equalsIgnoreCase("RoboGameAvatar"))
-				{
-					bo = new RoboGameAvatar();
-				}
-				else if (t.equalsIgnoreCase("RoboGameWorldRoot"))
-				{
-					bo = new RoboGameWorldRoot();
-				}
-				else if (t.equalsIgnoreCase("RoboGameWorld"))
-				{
-					bo = new RoboGameWorld();
+					bo = new RsbBigBitMap();
 				}
 				else
 				{
 					static_error("unknown object "+t);
 				}
 				break;				
-			}*/
+			}
 			case 'T':
 			{
 				if (t.equalsIgnoreCase("TextAdventureWorld"))

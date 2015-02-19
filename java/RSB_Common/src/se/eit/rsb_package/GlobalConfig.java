@@ -47,9 +47,12 @@ public class GlobalConfig {
 	static final boolean FLAT_WORLD=true;
 	
 	public int port=8080;
-	public String httpRootDir=System.getProperty("user.dir");
-			
-	public String savesRootDir=System.getProperty("user.dir");
+	//public String httpRootDir=System.getProperty("user.dir")+"/web";		
+	//public String savesRootDir=System.getProperty("user.dir")+"/saved_games";
+	//public String httpRootDir="./web";		
+	//public String savesRootDir="./saved_games";
+	public String httpRootDir="web";		
+	public String savesRootDir="saved_games";
 	
 	public boolean startWebBrowser=false;
 	

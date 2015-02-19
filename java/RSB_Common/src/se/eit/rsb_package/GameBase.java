@@ -35,4 +35,24 @@ public abstract class GameBase extends DbThreadSafe {
 	}
 	*/
 
+	/*
+	@Override
+	// When an object is unlinked the objects inside (other objects) are moved to the parent object
+	public void unlinkSelf()
+	{
+		if (this.listOfStoredObjects!=null)
+		{
+			for (DbStorable ds : this.listOfStoredObjects)
+			{
+				if (ds instanceof DbContainer)
+				{
+					DbContainer dc=(DbContainer)ds;
+					dc.moveBetweenRooms(this.getParent());
+				}
+			}
+		}
+		super.unlinkSelf();
+	}
+	*/
+
 }

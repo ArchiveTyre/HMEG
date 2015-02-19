@@ -384,6 +384,7 @@ public abstract class DbStorable extends DbBase {
 	    return bo.getContainingObjOfClass(cls);
 	}*/
 
+	@Override
 	public void linkSelf(DbBase parentObj)
 	{
 		if (parentObj instanceof DbContainer)
@@ -400,6 +401,7 @@ public abstract class DbStorable extends DbBase {
 	
 	
 	// Remove this object from the super objects list
+	@Override
 	public void unlinkSelf()
 	{
 		if (containingObj instanceof DbContainer)
@@ -408,6 +410,7 @@ public abstract class DbStorable extends DbBase {
 		}
 	}
 	
+	@Override
 	public DbSuperRoot getDbSuperRoot()
 	{
 		if (containingObj instanceof DbSuperRoot)
@@ -424,4 +427,37 @@ public abstract class DbStorable extends DbBase {
 	}
 
 
+	// This is just for debugging, it is used in DbIdList.
+	@Override
+	public boolean isThisOrAnyParentAnIdList()
+	{
+		if (this instanceof DbIdList)
+		{
+			return true;
+		}
+		else if (containingObj==null)
+		{
+			return false;
+		}
+		else
+		{
+			return containingObj.isThisOrAnyParentAnIdList();
+		}
+	}
+
+	
+	@Override
+	public boolean isVisibleTo(DbBase observingObj)
+	{
+		if (containingObj != null)
+		{
+			return containingObj.isVisibleTo(observingObj);
+		}
+		else
+		{
+			return super.isVisibleTo(observingObj);
+		}
+	}
+
+	
 }

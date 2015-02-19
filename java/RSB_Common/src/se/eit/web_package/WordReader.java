@@ -377,8 +377,13 @@ public class WordReader {
     // true if next thing to read looks like its a number (it only looks at one character so it can still be an incorrect number)
 	public boolean isNextInt() 
 	{
-		skipWhiteAndCheckStrBuffer();		
-		
+		if (inputStr==null)
+		{
+			return false;
+		}
+
+		skipWhiteAndCheckStrBuffer();
+
 		if (inputStr.length()<1)
 		{
 			return false;

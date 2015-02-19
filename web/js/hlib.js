@@ -191,3 +191,15 @@ function displayDate()
 }
 */
 
+function sqr(a)
+{
+	return a*a;
+}
+
+function calcDist(p1, p2)
+{
+	return Math.sqrt(sqr(p1.x-p2.x)+sqr(p1.y-p2.y));
+}
+
+
+

@@ -384,6 +384,7 @@ public class Main {
 	 	FileServer fileServer=new FileServer(config, dbRoot);
 	 	WebSocketServer webSocketServer= new SocketServer(config, dbRoot);
 
+	 	
 		debug("Create and start the thread that accepts new connections");
 		webServer = new WebServer(config.port, config.httpRootDir, webSocketServer, fileServer);   	
 		Thread stt = new Thread(webServer);
@@ -643,7 +644,29 @@ public class Main {
 	 */
 	public static void main(String[] args) 
 	{
+		/*
+		{
+			System.out.println(""+Long.toString(-2, 16));
+			System.out.println(""+Long.toString(255, 16));
+			
+			final long i=Long.parseLong("fe000000fc000000", 16);
+			System.out.println(""+i);
+		}
+		*/
+		
+		/*
+		BigBitMap bbm=new BigBitMap("10 8 9 80");
+		for(int i=0;i<256;i++)
+		{
+			if (bbm.getBit(i)>0)
+			{
+				System.out.println(""+i);
+			}
+		}
+		*/
+
 		Main m = new Main();
+
 		
 		//WebHttpServer w = new WebHttpServer();
 
@@ -681,11 +704,22 @@ public class Main {
 				else
 				{
 					help();
-					System.exit(1);
+					//System.exit(1);
+					return;
 				}
 				
 			}
-	   	
+
+		 	// Check that the http root directory exist
+		 	File theDir = new File(m.config.httpRootDir);
+		 	if (!theDir.exists()) {
+		 		System.out.println("\nThe http root directory was not found at: "+m.config.httpRootDir+"\n");
+		 		System.out.println("Use switch -? for usage help");
+				//System.exit(1);		 		  
+				return;
+		 	}
+			
+			
 			// Start a web html server
 			//Thread thread = new Thread(w);
 			//thread.start();

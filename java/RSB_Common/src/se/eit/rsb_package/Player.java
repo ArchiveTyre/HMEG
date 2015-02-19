@@ -91,7 +91,11 @@ public class Player extends DbRoot {
         ww.writeWord(realCountry);
     }
     
-    
+	public String getRegisteredFromAdr()
+	{
+		return registeredFromAdr;
+	}
+	
 /*
     public String getType()
     {

@@ -22,12 +22,12 @@ public class WorldBase extends DbTickReceiver
 	public final static String nameOfWorldsDb = "worldsDatabase"; 
 
 	
-	protected String createdBy;
-	protected long creationTime;
-	protected long gameTime;
-	String ops;
-	
-	
+	protected String createdBy;  // Who created this game world
+	protected long creationTime; // When game was created in unix/posix time milliseconds.
+	protected long gameTime; // How long the game has been running in its own time units counting (e.g. this is not incremented when game is paused).
+	String ops=""; // A lost of admins/ops that can pause and start the game.
+	public String gamePassword="";
+	String bannedPlayers="";
 
 	public static String className()
 	{	
@@ -72,6 +72,9 @@ public class WorldBase extends DbTickReceiver
 		creationTime= wr.readLong();
 		gameTime=wr.readLong();
 		ops=wr.readString();
+		gamePassword=wr.readString();
+		bannedPlayers=wr.readString();
+
 	}
 
 	// serialize to ww
@@ -83,6 +86,8 @@ public class WorldBase extends DbTickReceiver
 		ww.writeLong(creationTime);
 		ww.writeLong(gameTime);
 		ww.writeString(ops);
+		ww.writeString(gamePassword);
+		ww.writeString(bannedPlayers);
 	}	
 
 	@Override
@@ -93,9 +98,34 @@ public class WorldBase extends DbTickReceiver
 		pw.println(prefix+"creationTime "+creationTime);		
 		pw.println(prefix+"gameTime "+gameTime);		
 		pw.println(prefix+"ops '"+ops+"'");		
+		pw.println(prefix+"gamePassword '"+gamePassword+"'");		
+		pw.println(prefix+"bannedPlayers '"+bannedPlayers+"'");		
 	}
 
-	
+	@Override
+	public int setInfo(WordReader wr, String infoName)
+	{
+		if (infoName.equals("gamePassword"))
+		{
+			gamePassword=wr.readString();
+			return 1;
+		}
+		else if (infoName.equals("ops"))
+		{
+			ops=wr.readString();
+			return 1;
+		}
+		else if (infoName.equals("bannedPlayers"))
+		{
+			bannedPlayers=wr.readString();
+			return 1;
+		}
+		else
+		{
+			return super.setInfo(wr, infoName);
+		}
+	}
+
 	public long getGameTime()
 	{
 		return gameTime;
@@ -111,19 +141,18 @@ public class WorldBase extends DbTickReceiver
 		return ops;
 	}
 
+	public String getBannedPlayers()
+	{
+		return bannedPlayers;
+	}
+
+	// Return >0 if OK, <=0 if not OK.
 	public int addOp(String name)
 	{
 		if (WordWriter.isNameOk(name, 1))
 		{
-			if (ops.length()>0)
-			{
-				ops+=" ";
-			}
-			ops+=name;
-		}
-		else
-		{
-			return -1;
+			ops = Misc.addWordToList(name, ops);
+			return 1;
 		}
 		return 0;
 	}
@@ -141,44 +170,31 @@ public class WorldBase extends DbTickReceiver
 		return 0;
 	}
 
+	// Return >0 if OK, <=0 if not OK.
 	public int rmOp(String str)
 	{
-		int n=0;
-		WordReader wr=new WordReader(ops);
-		ops="";
-		while(wr.isOpenAndNotEnd())
+		int n =  Misc.getNWordInList(str , ops);
+		if (n>0)
 		{
-			String a=wr.readWord();
-			if (!a.equals(str))
-			{
-				addOp(a);
-			}
-			else
-			{
-				n++;
-			}
+			ops = Misc.removeWordFromList(str, ops);
 		}
 		return n;
 	}
 	
-	public boolean isOp(String name)
+	static public boolean isWordInListOfWords(String name, String list)
 	{
-		String ops=getOps();
-		if (ops!=null)
-		{
-			WordReader wr=new WordReader(ops);
-			while(wr.isOpenAndNotEnd())
-			{
-				String n=wr.readName();
-				if (name.equals(n))
-				{
-					return true;
-				}
-			}
-		}
-		return false;
+		return Misc.getNWordInList(name, list)>0?true:false;
 	}
 
+	public boolean isOp(String name)
+	{
+		return isWordInListOfWords(name, ops);
+	}
+
+	public boolean isPlayerBanned(String name)
+	{
+		return isWordInListOfWords(name, bannedPlayers);
+	}
 	
 	@Override
 	public void tickMsCallback(long tickTimeMs)
@@ -189,5 +205,10 @@ public class WorldBase extends DbTickReceiver
 	public void setCreatedBy(String createdBy)
 	{
 		this.createdBy=createdBy;
+	}
+	
+	public String getGamePassword()
+	{
+		return gamePassword;
 	}
 }

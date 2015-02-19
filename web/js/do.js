@@ -8,7 +8,8 @@
 // This sends a message to the server (and logs it for debugging)
 function doSend(message)
 {
-	if (message!='pong')
+	var str= ""+message;
+	if (str.substring(0, 9)!='mirrorAck')
 	{
 		console.log("SENT: " + message); 
 	}

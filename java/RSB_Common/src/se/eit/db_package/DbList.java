@@ -120,7 +120,7 @@ public class DbList<E> implements java.lang.Iterable<E> {
 			{
 				// If not its an error.
 				//error("index already used "+index);
-				throw(new ArrayStoreException("capacity "+ getCapacity()+ " index "+index));
+				throw(new ArrayStoreException("that position is not free, index " + index + " capacity " + getCapacity()));
 			}
 		}
     }

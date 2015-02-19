@@ -10,7 +10,7 @@ import se.eit.web_package.*;
 public class DbIdList extends DbRoot {
 
 	
-	protected DbList<DbIdObj> idList=new DbList<DbIdObj>();
+	public DbList<DbIdObj> idList=new DbList<DbIdObj>();
 	
 	//Queue<Integer> unusedIds = new LinkedList<Integer>();  // A queue of unused IDs to replace latestIdGiven. The idea is to avoid reusing an ID too soon.
 	
@@ -19,9 +19,7 @@ public class DbIdList extends DbRoot {
 	{
 		super();
 		
-		// The IdList object will be object zero itself. First other object will be 1.
-		// Not sure if it is a good idea that the IdList is in the list itself.
-		// If an ID list is in another ID list it should have an ID assigned from there, but internally its ID shall be zero. How will we know which ID (of two possible) is wanted?
+		// The IdList object will be object zero itself. First other object will be 1. An IdList can not reside in another IdList since then it would not be object with ID 0 in that list.
 		idList.add(0, this);
 		setId(0, this);  
 	}
@@ -132,5 +130,26 @@ public class DbIdList extends DbRoot {
 		idObj.setId(-1, null);
 	}
 
+	
+	
+	// This is just for debugging.
+	@Override
+	public void linkSelf(DbBase parentObj)
+	{
+		// An IdList can not reside in another IdList since then it would not be object with ID 0 in that list. So checking that here.		
+		/*if (parentObj instanceof DbIdList)
+		{
+			error("A DbRoot can not be stored in another DbRoot");
+		}*/
+
+		if (parentObj.isThisOrAnyParentAnIdList())
+		{
+			error("A DbRoot can not be stored in another DbRoot");
+		}
+		
+		super.linkSelf(parentObj);
+		
+	}
+	
 	
 }

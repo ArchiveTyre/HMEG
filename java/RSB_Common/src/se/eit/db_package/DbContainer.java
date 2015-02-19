@@ -686,7 +686,7 @@ public abstract class DbContainer extends DbStorable {
 		{
 			return this;
 		}
-		else if ((nameOrIndex.charAt(0)=='#') || (nameOrIndex.charAt(0)=='~'))
+		else if ((nameOrIndex.charAt(0)=='#') || (nameOrIndex.charAt(0)=='~')) // Using # here is deprecated
 		{
 			final String idStr=nameOrIndex.substring(1);
 			final int id=Integer.parseInt(idStr);
@@ -707,7 +707,12 @@ public abstract class DbContainer extends DbStorable {
 		}
 		else
 		{		
-			return this.getChildFromIndexOrName(nameOrIndex);
+			DbBase db = this.getChildFromIndexOrName(nameOrIndex);
+			if (db==null)
+			{
+				return this;
+			}
+			return db.findObjectByNameIndexOrId(wr);
 		}
 	
 	}

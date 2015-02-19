@@ -304,11 +304,17 @@ public class DbRoot extends DbThreadSafe {
 	
 	public void saveSelf(GlobalConfig config)
 	{
+		
+		File savesRootDir = new File(config.savesRootDir);
+		savesRootDir.mkdir();
+		
 		lockRead();
 		try {			
 			
 			// http://docs.oracle.com/javase/6/docs/api/java/io/File.html
-			String fileName=config.savesRootDir+"/"+getNameAndPath(".")+".txt";
+			final String path=savesRootDir.getPath();
+			final String name=getNameAndPath(".");
+			String fileName=path+"/"+name+".txt";
 			System.out.println("saving to " + fileName);
 			
 			File f1 = new File(fileName+"_");
@@ -603,4 +609,6 @@ public class DbRoot extends DbThreadSafe {
 	}
 	*/
 
+	
+	
 }

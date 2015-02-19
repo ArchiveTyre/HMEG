@@ -23,7 +23,7 @@ public class NotificationSender extends DbIdList {
 		}
 	}
 	
-	public DbList<NotificationData> ndList=new DbList<NotificationData>();;
+	public DbList<NotificationData> notificationDataList=new DbList<NotificationData>();;
 
 	
 	// http://stackoverflow.com/questions/936684/getting-the-class-name-from-a-static-method-in-java		
@@ -46,18 +46,18 @@ public class NotificationSender extends DbIdList {
 	public int addNotificationReceiver(NotificationReceiver notificationReceiver, int notificationReference)
 	{
 		NotificationData nd = new NotificationData(notificationReceiver, notificationReference);
-		return ndList.add(nd);
+		return notificationDataList.add(nd);
 	}
 
 	public void removeNotificationReceiver(int index)
 	{
-		ndList.remove(index);
+		notificationDataList.remove(index);
 	}
 
 	// Call this if notifications are no longer wanted.
 	public int removeNotificationReceiver(NotificationReceiver notificationReceiver)
 	{
-		Iterator<NotificationData> i=ndList.iterator();
+		Iterator<NotificationData> i=notificationDataList.iterator();
 		
 		while (i.hasNext())
 		{
@@ -75,7 +75,7 @@ public class NotificationSender extends DbIdList {
 	// Call this to tell subscribers that something has happened.
 	public void notifySubscribers(int idOfSenderOrEventId)
 	{
-		for (NotificationData nd : ndList)
+		for (NotificationData nd : notificationDataList)
 		{
 			nd.doNotify(idOfSenderOrEventId);
 		}
@@ -86,7 +86,7 @@ public class NotificationSender extends DbIdList {
 	public void unlinkSelf()
 	{
 		notifySubscribers(-1);
-		ndList.clear();
+		notificationDataList.clear();
 		super.unlinkSelf();
 	}
 	
