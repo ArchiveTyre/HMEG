@@ -7,6 +7,7 @@ public class CityPvpEntity extends GameBase {
 	public int x = 0;
 	public int y = 0;
 	public int a = 0;
+	public int b = 0;
 	public int health = 20;
 	public int Oldx = 0;
 	public int Oldy = 0;
@@ -17,6 +18,7 @@ public class CityPvpEntity extends GameBase {
 	public int fill_wood = 0;
 	public int fill_stone = 0;
 	public int fill_mineral = 0;
+	public boolean moveTime = true; 
 	
 	
 	
@@ -43,6 +45,9 @@ public class CityPvpEntity extends GameBase {
 		health = wr.readInt();
 		itemtype = wr.readInt();
 		stack = wr.readInt();
+		fill_wood = wr.readInt();
+		fill_stone = wr.readInt();
+		fill_mineral = wr.readInt();
 	}
 	
 	
@@ -55,13 +60,23 @@ public class CityPvpEntity extends GameBase {
 		ww.writeInt(health);
 		ww.writeInt(itemtype);
 		ww.writeInt(stack);
+		ww.writeInt(fill_wood);
+		ww.writeInt(fill_stone);
+		ww.writeInt(fill_mineral);
 	}
 	
 	// Denna metod anropas av game engine periodiskt
 	public void tickEntityMs(long deltaMs)
 	{
-		a+=deltaMs;
-		if (a>100)
+		if (a < 101)
+		{
+			a+=deltaMs;
+		}
+		if (b < 101)
+		{
+		b+=deltaMs;
+		}
+		if (a>10)
 		{	
 			if (this.getContainingObj() instanceof CityPvpRoom)
 			{
@@ -73,15 +88,31 @@ public class CityPvpEntity extends GameBase {
 			{
 				return;
 			}
-
+		
 			
 			
 			// DO GRAVITY
 			move(0,CityPvpBlock.inBlockGravity(cpr.map[x][y]));
-			a-=1000;
+			a-=10;
+			
+			
+			
 			}
 		}
+		if (b>100)
+		{
+			if (moveTime== false)
+			{
+			System.out.println("To be");
+			moveTime=true;
+			b-=10;
+			}
+			System.out.println("Or not to be");
+		}	
+		//System.out.println("That is the question to ask");
+		
 	}
+	
 	
 
 	public void doMoveAnimation(int dx, int dy)
@@ -95,6 +126,11 @@ public class CityPvpEntity extends GameBase {
 			else if (state == 3) {state=1;}
 			System.out.println("Brah chainging Animation "+state);
 			*/
+		if (state == 0) {state=2;}
+		else if (state == 1) {state=3;}
+		// Reverse
+		else if (state == 2) {state=0;}
+		else if (state == 3) {state=1;}
 	}
 	
 	
@@ -102,7 +138,15 @@ public class CityPvpEntity extends GameBase {
 	{
 		
 		
-		doMoveAnimation(dx, dy);
+		//doMoveAnimation(dx, dy);
+		
+		
+		//Check if you may move
+		
+		if (moveTime == false)
+		{
+			return;
+		}
 		
 		
 		DbBase p = this.getParent();
@@ -222,16 +266,18 @@ public class CityPvpEntity extends GameBase {
 				// Här flyttas denna entity
 				x=newX;
 				y=newY;
+				//System.out.println("moved");
+				moveTime=false;
 				
 				
-				
-				if (state == 0) {state=2;}
-				else if (state == 1) {state=3;}
+				doMoveAnimation(newX, newY);
+				//if (state == 0) {state=2;}
+				//else if (state == 1) {state=3;}
 				// Reverse
-				else if (state == 2) {state=0;}
-				else if (state == 3) {state=1;}
-				System.out.println("Brah chainging Animation "+state);
-		///////////////////////		/////////////////////move(0,CityPvpBlock.inBlockGravity(cpr.map[x][y]));
+				//else if (state == 2) {state=0;}
+				//else if (state == 3) {state=1;}
+				//System.out.println("Brah chainging Animation "+state);
+				//move(0,CityPvpBlock.inBlockGravity(cpr.map[x][y]));
 		
 				// Uppdatera rutan den var i, och rutan den kommer till 
 				//CityPvpRoom.updateTile(Oldx, Oldy)
