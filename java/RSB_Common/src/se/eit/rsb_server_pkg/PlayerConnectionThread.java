@@ -517,11 +517,11 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
     {
     	//String typeOfGame=null;
     	debug("startNewGame");
-		Object typeNames[]=new String[3];  
+		Object typeNames[]=new String[1];  
 		// List all supported games here. If adding one here, add it in playWorld also.
-		typeNames[0]="CityPvp";
-		typeNames[1]="Hmeg";
-		typeNames[2]="Empire";
+		typeNames[0]="Hmeg";
+		//typeNames[1]="CityPvp";
+		//typeNames[2]="Empire";
 		//typeNames[3]="RoboGame";
 		//typeNames[3]="ChatRoom";
 		//typeNames[4]="TextAdventure";
@@ -541,24 +541,24 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
 		{
 			switch(typeOfGame)
 			{
+				case 0:
+				{
+					HmegServer s=new HmegServer(config, player, stc);
+				    worldName=s.createAndStore();
+				    break;
+				}
+    			/*case 1:
+    			{
+    				CityPvpServer s=new CityPvpServer(config, player, stc);
+    			    worldName=s.createAndStore();    				
+    			    break;
+    			}*/
     			/*case 3:
     			{
     				EmpireServer s=new EmpireServer(config, player, stc);
     			    worldName=s.createAndStore();    				
     			    break;
     			}*/
-    			case 0:
-    			{
-    				CityPvpServer s=new CityPvpServer(config, player, stc);
-    			    worldName=s.createAndStore();    				
-    			    break;
-    			}
-    			case 1:
-    			{
-    				HmegServer s=new HmegServer(config, player, stc);
-    			    worldName=s.createAndStore();
-    			    break;
-    			}
     			/*case 3:
     			{
     				RoboGameServer s=new RoboGameServer(config, player, stc);
