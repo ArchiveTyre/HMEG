@@ -240,13 +240,16 @@ public class TextAdventureWorld extends WorldBase {
 		final long deltaTimeMs = tickTimeMs - this.tickTimeMs;
 		this.tickTimeMs += deltaTimeMs;
 		
-		// TODO: Here we do tick on all objects in this game regardless if they need it or not. We could use CPU more efficiently...
-		for (DbIdObj dio : idList)
+		if (notificationDataList.size()!=0)
 		{
-			if (dio instanceof TextAdventureEntity)
+			// TODO: Here we do tick on all objects in this game regardless if they need it or not. We could use CPU more efficiently...
+			for (DbIdObj dio : idList)
 			{
-				TextAdventureEntity tae = (TextAdventureEntity)dio;
-				tae.tickSelfMs(deltaTimeMs);
+				if (dio instanceof TextAdventureEntity)
+				{
+					TextAdventureEntity tae = (TextAdventureEntity)dio;
+					tae.tickSelfMs(deltaTimeMs);
+				}
 			}
 		}
 		*/		

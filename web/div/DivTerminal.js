@@ -14,6 +14,9 @@ function DivTerminal(parentWin)
 	this.count=null;
 	this.text='';
 	this.element=null;
+	
+	this.changeConter=0;
+	this.previousChangeConter=0;
 }
 
 DivTerminal.prototype.defineDiv=function(divSize)
@@ -30,10 +33,10 @@ DivTerminal.prototype.defineDiv=function(divSize)
 	
 	if (!this.parentWin.mobileMode)
 	{
-		newPage+='<input type="text" id="inputText" size="88" onchange="empWin.empWinConsole(\'inputText\')"><br/>'; // This is where text can be written by user
-		newPage+='<input type="button" value=enter onclick="empWin.empWinConsole(\'inputText\')">';
-		newPage+='<input type="button" value=cancel onclick="empWin.mapCanvasCancel()">';
-		newPage+='<input type="button" value=back onclick="empWin.DivTerminal.back();"><br>';
+		newPage+='<input type="text" id="inputText" size="88" onchange="rootDiv.empWinConsole(\'inputText\')"><br/>'; // This is where text can be written by user
+		newPage+='<input type="button" value=enter onclick="rootDiv.empWinConsole(\'inputText\')">';
+		newPage+='<input type="button" value=cancel onclick="rootDiv.mapCanvasCancel()">';
+		newPage+='<input type="button" value=back onclick="rootDiv.DivTerminal.back();"><br>';
 	}
 	//newPage+='</div>';
 
@@ -53,10 +56,10 @@ DivTerminal.prototype.addEventListenersDiv=function()
 
 	this.element.value+=this.text;
 
-/*	if (empWin.empDb!=null)
+/*	if (rootDiv.empDb!=null)
 	{
-		var cl=empWin.empDb.getEmpireWorld().getEmpireStatesList().children;
-		var n=cl[empWin.mapNation];	
+		var cl=rootDiv.empDb.getEmpireWorld().getEmpireStatesList().children;
+		var n=cl[rootDiv.mapNation];	
 		var r=n.eRoundBuffer;
 
 		if (n!=null)
@@ -93,8 +96,12 @@ DivTerminal.prototype.addEventListenersDiv=function()
 
 DivTerminal.prototype.drawDiv=function()
 {
-	var e = this.element;
-	e.scrollTop = e.scrollHeight;
+    if (this.previousChangeConter!=this.changeConter)
+    {
+		var e = this.element;
+		e.scrollTop = e.scrollHeight;
+		this.previousChangeConter=this.changeConter;
+	}
 }
 
 
@@ -107,7 +114,7 @@ DivTerminal.prototype.back=function()
 {
 	this.text=this.element.value+"---\n";
 	this.element=null;
-	empWin.mapSetShowState(0)
+	rootDiv.mapSetShowState(0)
 }
 
 DivTerminal.prototype.textBoxAppend=function(msg)
@@ -125,6 +132,8 @@ DivTerminal.prototype.textBoxAppend=function(msg)
 		e.scrollTop = e.scrollHeight;
 	}
 
+	this.changeConter++;
+	
 	console.log(str);
 }
 

@@ -107,9 +107,11 @@ public class CityPvpRoom extends CityPvpEntity{
         }
 
         
-        DbRoot dr = getDbRoot();
+        /*DbRoot dr = getDbRoot();
         NotificationSender ns = (NotificationSender)dr;
-        ns.notifySubscribers(this.getId());
+        ns.notifySubscribers(this.getId());*/
+        
+     	this.setUpdateCounter();
 
         image=null;        
 	}

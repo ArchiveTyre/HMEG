@@ -240,7 +240,7 @@ function doTextQueryCallback()
 function doCancelTextQuery()
 {
 	var theSrcTextBox = document.getElementById("doTextQuery");
-	var str=theSrcTextBox.value;
+	//var str=theSrcTextBox.value;
 	doSend('cancel');
 	//theSrcTextBox.value="";
 	$("body").empty();

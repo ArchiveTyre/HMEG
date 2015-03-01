@@ -96,8 +96,9 @@ public abstract class MirrorServer extends ServerBase implements NotificationRec
 		if ((parentObject!=null) && (parentObject instanceof DbIdObj))
 		{
 			// Parent exist, have we sent it to client?
-			final Integer parentCounter=latestVersionOfIdObjectSent.get(parentObject.getId());
-			if (parentCounter==null)
+			final int parentId=parentObject.getId();
+			final Integer parentCounter=latestVersionOfIdObjectSent.get(parentId);
+			if ((parentCounter==null) && (parentId>=0))
 			{
 				// Parent is never sent to client. Send it first (before sending the object to be updated).
 				sendUpdateAndRemember((DbIdObj)parentObject);
@@ -117,6 +118,10 @@ public abstract class MirrorServer extends ServerBase implements NotificationRec
 		
 		final String str=ww.getString();
 		
+		/*if (sentCounter==null)
+		{
+			debug("toClient " +str);
+		}*/
 		
 		stc.writeLine(str); // TODO: worldBase should not be read locked when calling stc.writeLine since that call may block. Instead this function shall return a string, the string is sent after worldBase.unlockRead(); 
 
@@ -125,17 +130,19 @@ public abstract class MirrorServer extends ServerBase implements NotificationRec
 	}
 		
 	
-	protected void sendUpdateAndRememberIfVisible(DbIdObj io) throws IOException
+	protected int sendUpdateAndRememberIfVisible(DbIdObj io) throws IOException
 	{
 		if (io.isVisibleTo(playerAvatar))
 		{
-			debug("visible "+io.toShortFormatedString());
+			//debug("visible "+io.toShortFormatedString());
 			sendUpdateAndRemember(io);
+			return 1;
 		}
 		else
 		{
-			debug("not visible "+io.toShortFormatedString());
+			//debug("not visible "+io.toShortFormatedString());
 		}
+		return 0;
 	}
 	
 	protected void sendRemoved(int id) throws IOException
@@ -144,14 +151,14 @@ public abstract class MirrorServer extends ServerBase implements NotificationRec
 		ww.writeWord("mirrorRemove");					
 		ww.writeInt(id);
 		String str=ww.getString();
-		debug(str);
+		//debug(str);
 		stc.writeLine(str);
 	}
 
-	public void findAndSendDbUpdatesToClientAll() throws IOException, InterruptedException
+	// Returns the number of objects to be removed
+	public int findRemovalsAndRemember() throws IOException, InterruptedException
 	{
-		// http://docs.oracle.com/javase/7/docs/api/java/util/Hashtable.html
-		
+		int n=0;
 		// Iterate the list of objects we have previously sent to client.
 		// If the object no longer exist send a "removeUnit" message.
 		// Check for removed objects or updated objects.
@@ -167,71 +174,73 @@ public abstract class MirrorServer extends ServerBase implements NotificationRec
 			final Map.Entry<Integer, Integer> entry = iterator.next();  // ConcurrentModificationException on this line, but why?
 		    final int key=entry.getKey(); // key is an object ID.
 
-		    try
+			
+			final DbIdObj io=worldBase.getDbIdObj(key);
+			if ((io==null) || (!io.isVisibleTo(playerAvatar)))
 			{
-				worldBase.lockRead();
-				
-				final DbIdObj io=worldBase.getDbIdObj(key);
-				if (io==null)
-				{
-					// An object has been removed, tell client about it.
-					sendRemoved(key);
-					iterator.remove(); // right way to remove entries from Map, this does not cause ConcurrentModificationException.
-				}
-				else
-				{
-					// An object has been changed, tell client about it.
-					// No, this can result in ConcurrentModificationException if a parent is missing. So commented out this.
-					/*
-					final Integer value=entry.getValue();
-					final int sentDbChangedCounter=value;
-					final int currentDbChangedCounter=io.getDbChangedCounter();
-					if (sentDbChangedCounter!=currentDbChangedCounter)
-					{
-						sendUpdateAndRemember(io); // this would cause ConcurrentModificationException.
-					}
-					*/
-					// do nothing, changes are sent in next step, the loop "for (int i=0; i<idListLength; i++)" below.
-				}
+				// An object has been removed, tell client about it.
+				sendRemoved(key);
+				iterator.remove(); // right way to remove entries from Map, this does not cause ConcurrentModificationException.
+				n++;
 			}
-			finally
+			else
 			{
-				worldBase.unlockRead();
+				// An object has been changed, tell client about it.
+				// No, this can result in ConcurrentModificationException if a parent is missing. So commented out this.
+				/*
+				final Integer value=entry.getValue();
+				final int sentDbChangedCounter=value;
+				final int currentDbChangedCounter=io.getDbChangedCounter();
+				if (sentDbChangedCounter!=currentDbChangedCounter)
+				{
+					sendUpdateAndRemember(io); // this would cause ConcurrentModificationException.
+				}
+				*/
+				// do nothing, changes are sent in next step, the loop "for (int i=0; i<idListLength; i++)" below.
 			}
 			
-		}
+		}		
+		return n;
+	}
+	
+	public int findAndSendDbUpdatesToClientAll() throws IOException, InterruptedException
+	{
+		// http://docs.oracle.com/javase/7/docs/api/java/util/Hashtable.html
+		int n=0;
 		
+		try
+		{
+			worldBase.lockRead();
+			findRemovalsAndRemember();
 
 
 						
-		// Here we should iterate all units in the part of the world this user can see.
-		// But for now we will iterate everything. This might become terribly inefficient when world grows large. Hopefully the usual case is that idObjectsToUpdate is used and not this. 
-		//final int idListLength=worldBase.getDbIdListLength();
-		//for (int i=0; i<idListLength; i++)
-		for (final DbIdObj io : worldBase.idList)
-		{
-			final int i=io.getId();
-			try
+			// Here we should iterate all units in the part of the world this user can see.
+			// But for now we will iterate everything. This might become terribly inefficient when world grows large. Hopefully the usual case is that idObjectsToUpdate is used and not this. 
+			//final int idListLength=worldBase.getDbIdListLength();
+			//for (int i=0; i<idListLength; i++)
+			for (final DbIdObj io : worldBase.idList)
 			{
-				worldBase.lockRead();
-
-				final Integer prevChangeCounter=latestVersionOfIdObjectSent.get(i);
-				if (prevChangeCounter==null)
-				{
-					// This object is new, has not yet been sent to the client. Tell client about it.
-					sendUpdateAndRememberIfVisible(io);
-				}
-				else
-				{
-					final int sentDbChangedCounter=prevChangeCounter;
-					if (io.isChanged(sentDbChangedCounter))
+				final int i=io.getId();
+	
+					final Integer prevChangeCounter=latestVersionOfIdObjectSent.get(i);
+					if (prevChangeCounter==null)
 					{
-						// This object is changed. Send to client.
-						sendUpdateAndRememberIfVisible(io);
+						// This object is new, has not yet been sent to the client. Tell client about it.
+						n+=sendUpdateAndRememberIfVisible(io);
 					}
 					else
 					{
-						// This object has not changed, do nothing.
+						final int sentDbChangedCounter=prevChangeCounter;
+						if (io.isChanged(sentDbChangedCounter))
+						{
+							// This object is changed. Send to client.
+							n+=sendUpdateAndRememberIfVisible(io);
+						}
+						else
+						{
+							// This object has not changed, do nothing.
+						}
 					}
 				}
 			}
@@ -239,14 +248,75 @@ public abstract class MirrorServer extends ServerBase implements NotificationRec
 			{
 				worldBase.unlockRead();
 			}
-		}
-		
-		idObjectsToUpdate.clear();
-		
-		stc.writeLine("mirrorUpdated "+updateSequenceNumberToSend++);
+			
+			idObjectsToUpdate.clear();
+			
+			//stc.writeLine("mirrorUpdated "+updateSequenceNumberToSend++);
+			return n;
 	}
 	
-			
+	public int iterateUpdatesToClient() throws IOException, InterruptedException
+	{
+		int n=0;
+		if (idObjectsToUpdate.size()>0)
+		{
+			// not empty
+			worldBase.lockRead();
+		    try 
+		    {
+				n+=findRemovalsAndRemember();
+
+		    	for(;;) // loop until InterruptedException
+		    	{
+					int id=idObjectsToUpdate.take(0);
+					
+					final DbIdObj io=worldBase.getDbIdObj(id); // TODO: Do we need read lock here?
+					if (io==null)
+					{
+						// An object previously sent to client no longer exist, tell client to remove it.
+						//sendRemoved(id);
+					}
+					else if (!io.isVisibleTo(playerAvatar))
+					{
+						// An object previously sent to client no longer visible, tell client to remove it.
+						//sendRemoved(id);
+					}
+					else
+					{
+						
+						final Integer prevChangeCounter=latestVersionOfIdObjectSent.get(id);
+						if (prevChangeCounter==null)
+						{
+							// This object is new, not previously sent to client
+							sendUpdateAndRemember(io);
+							n++;
+						}
+						else
+						{
+							// an object previously sent, sending again is only needed if it has been changed since then
+							final int sentDbChangedCounter=prevChangeCounter;
+							if (io.isChanged(sentDbChangedCounter))
+							{
+								// It has been changed, send to client.
+								sendUpdateAndRemember(io);
+								n++;
+							}
+						}
+						
+					}
+		    	}
+			} catch (InterruptedException e) {
+				// do nothing, this is normal when idObjectsToUpdate is empty
+			}
+			finally
+			{
+				worldBase.unlockRead();
+			}
+		    
+	    }
+		return n;
+	}
+	
 	
 	public void findAndSendDbUpdatesToClient() throws IOException, InterruptedException
 	{
@@ -260,66 +330,25 @@ public abstract class MirrorServer extends ServerBase implements NotificationRec
 			networkLag++;
 			return;
 		}
-		
+	
+		int n=0;
 		
 		if (idObjectsToUpdate.size() == idObjectsToUpdate.getCapacity())
 		{
 			// queue has gotten full. Ignore the queue, instead scan database from scratch.
-		
-			findAndSendDbUpdatesToClientAll();
-	
+			n+=findAndSendDbUpdatesToClientAll();
 		}
 		else
 		{
 			// the notification queue was not full, send updates using it, if is not empty.
-			if (idObjectsToUpdate.size()>0)
-			{
-				// not empty
-				worldBase.lockRead();
-			    try 
-			    {
-			    	for(;;) // loop until InterruptedException
-			    	{
-						int id=idObjectsToUpdate.take(0);
-						
-						final DbIdObj io=worldBase.getDbIdObj(id); // TODO: Do we need read lock here?
-						if (io==null)
-						{
-							// An object previously sent to client no longer exist, tell client to remove it.
-							sendRemoved(id);
-						}
-						else
-						{
-							
-							final Integer prevChangeCounter=latestVersionOfIdObjectSent.get(id);
-							if (prevChangeCounter==null)
-							{
-								// This object is new, not previously sent to client
-								sendUpdateAndRemember(io);
-							}
-							else
-							{
-								// an object previously sent, sending again is only needed if it has been changed since then
-								final int sentDbChangedCounter=prevChangeCounter;
-								if (io.isChanged(sentDbChangedCounter))
-								{
-									// It has been changed, send to client.
-									sendUpdateAndRemember(io);
-								}
-							}
-							
-						}
-			    	}
-				} catch (InterruptedException e) {
-					// do nothing, this is normal when idObjectsToUpdate is empty
-				}
-				finally
-				{
-					worldBase.unlockRead();
-				}
-		    	stc.writeLine("mirrorUpdated "+ updateSequenceNumberToSend++);
-		    }
+			n+=iterateUpdatesToClient();
 		}
+
+	    if (n>0)
+	    {
+	    	stc.writeLine("mirrorUpdated "+ updateSequenceNumberToSend++);
+	    }
+
 	}
 		
 		
@@ -327,6 +356,7 @@ public abstract class MirrorServer extends ServerBase implements NotificationRec
 	
 	
 	// Notify can be called from various threads so do only thread safe stuff here.
+	// sendersRef is expected to be an object ID.
 	public void notify(int subscribersRef, int sendersRef)
 	{
 		if (idObjectsToUpdate.size() == idObjectsToUpdate.getCapacity())
@@ -340,14 +370,20 @@ public abstract class MirrorServer extends ServerBase implements NotificationRec
 			final DbBase db = worldBase.getDbIdObj(sendersRef);
 			if (db!=null)
 			{
-				if (db.isVisibleTo(playerAvatar))
+				if (db.isVisibleTo(playerAvatar))  
 				{
+					// If it is visible add/update shall be sent to client
+					idObjectsToUpdate.put(sendersRef);
+				}
+				else if (latestVersionOfIdObjectSent.get(sendersRef)!=null) 					
+				{
+					// If it is not visible but it has been then remove shall be sent to client 
 					idObjectsToUpdate.put(sendersRef);
 				}
 			}
 			else
 			{
-				debug("notify "+sendersRef);
+				debug("notify "+sendersRef+" null");
 			}
 		}
 	}

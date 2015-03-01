@@ -26,7 +26,6 @@ import se.eit.rsb_package.*;
 
 // Should investigate if these imports can be avoided.
 import se.eit.citypvp_package.*;
-//import se.eit.robogame_package.*;
 import se.eit.db_package.*;
 import se.eit.web_package.*;
 import se.eit.TextAdventure.*;
@@ -272,6 +271,7 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
 			    			{
 			    				// password is ok
 			    				
+			    				/*
 			    				for(;;)
 			    				{
 					            	String emailAddress = stc.promptString("enter_email", "give an email address to be used if you forget your password");
@@ -289,12 +289,12 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
 
 					    				stc.alertBox("player_reg_accepted", "player reg accepted");
 					    				
-						    			/*int r=SendEmail.sendEmailTo(player.emailAddress, "mpe", "Hello " + player.getName()+ "\nWelcome to MultiPlayerEmpire\nwww.eit.se/hb/mpe\nActivation code: "+player.emailVerificationCode +"\n\n");
+						    			int r=SendEmail.sendEmailTo(player.emailAddress, "mpe", "Hello " + player.getName()+ "\nWelcome to MultiPlayerEmpire\nwww.eit.se/hb/mpe\nActivation code: "+player.emailVerificationCode +"\n\n");
 
 						    			if (r!=0)
 						    			{
 						    				stc.alertBox("email_failed", "sending email did not seem to work"); 
-						    			}*/
+						    			}
 					    				
 					    				return;
 					    			}
@@ -303,6 +303,7 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
 					            		stc.alertBox("email_not_ok", "the entered email address was not ok");
 					            	}
 			    				}
+			    				*/
 			    			}
 			    			/*else
 			    			{
@@ -351,12 +352,12 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
 	    		{
 	    			stc.alertBox("player_found", "username " + player.getName() + " found, will send email (it can take a few minutes, if still not found check spam filters)");
 	    			
-	    			/*int r=SendEmail.sendEmailTo(player.emailAddress, "your pw", player.password);
+	    			//int r=SendEmail.sendEmailTo(player.emailAddress, "your pw", player.password);
 
-	    			if (r!=0)
+	    			//if (r!=0)
 	    			{
 	    				stc.alertBox("email_failed", "sending email did not seem to work"); 
-	    			}*/
+	    			}
 	    			
 	        		break;
 	    		}
@@ -424,11 +425,11 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
     					player.emailAddress=ea;
     					player.saveRecursive(config);
 
-    	    			/*int r2=SendEmail.sendEmailTo(player.emailAddress, "mpe", "Hello " + player.getName()+ "\nWelcome to MultiPlayerEmpire\nwww.eit.se/hb/mpe\nActivation code: "+player.emailVerificationCode +"\n\n");
-    	    			if (r2!=0)
+    	    			//int r2=SendEmail.sendEmailTo(player.emailAddress, "mpe", "Hello " + player.getName()+ "\nWelcome to MultiPlayerEmpire\nwww.eit.se/hb/mpe\nActivation code: "+player.emailVerificationCode +"\n\n");
+    	    			//if (r2!=0)
     	    			{
     	    				stc.alertBox("email_failed", "sending email did not seem to work"); 
-    	    			}*/
+    	    			}
         				return;
     				}
     				else
@@ -516,11 +517,12 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
     {
     	//String typeOfGame=null;
     	debug("startNewGame");
-		Object typeNames[]=new String[1];  
+		Object typeNames[]=new String[3];  
 		// List all supported games here. If adding one here, add it in playWorld also.
 		typeNames[0]="CityPvp";
-		//typeNames[1]="Empire";
-		//typeNames[2]="RoboGame";
+		typeNames[1]="Hmeg";
+		typeNames[2]="Empire";
+		//typeNames[3]="RoboGame";
 		//typeNames[3]="ChatRoom";
 		//typeNames[4]="TextAdventure";
 		//typeNames[5]="MibWorld";
@@ -539,20 +541,31 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
 		{
 			switch(typeOfGame)
 			{
- 
+    			/*case 3:
+    			{
+    				EmpireServer s=new EmpireServer(config, player, stc);
+    			    worldName=s.createAndStore();    				
+    			    break;
+    			}*/
     			case 0:
     			{
     				CityPvpServer s=new CityPvpServer(config, player, stc);
     			    worldName=s.createAndStore();    				
     			    break;
     			}
-    			/*case 2:
+    			case 1:
+    			{
+    				HmegServer s=new HmegServer(config, player, stc);
+    			    worldName=s.createAndStore();
+    			    break;
+    			}
+    			/*case 3:
     			{
     				RoboGameServer s=new RoboGameServer(config, player, stc);
     				worldName=s.createAndStore();
     			    break;
     			}*/
-    			case 3:
+    			/*case 3:
     			{
     				ChatRoomServer s=new ChatRoomServer(config, player, stc);
     			    worldName=s.createAndStore();
@@ -563,7 +576,7 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
     				MibServer s=new MibServer(config, player, stc);
     			    worldName=s.createAndStore();    				
     			    break;
-    			}
+    			}*/
 			}
     	}
     	
@@ -657,10 +670,25 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
     			TextAdventureServer cs=new TextAdventureServer(config, player, stc);
     			cs.join(w);
     		}
+    		/*else if (w instanceof EmpireWorld)
+    		{
+    			EmpireServer es=new EmpireServer(config, player, stc);
+    			es.join(w);	    			
+    		}	  */  	
+    		/*else if ((w instanceof RoboGameWorld) && (stc.dontUseRef==false))
+    		{
+    			RoboGameServer rgc=new RoboGameServer(config, player, stc);
+    			rgc.join(w);
+    		}*/
     		else  if ((w instanceof MibWorld) && (stc.dontUseRef==false))
     		{
     			MibServer mib=new MibServer(config, player, stc);
     			mib.join(w);	    			
+    		}
+    		else if (w instanceof HmegWorld)
+    		{
+    			HmegServer cps=new HmegServer(config, player, stc);
+    			cps.join(w);	    			
     		}
     		else if (w instanceof CityPvpWorld)
     		{

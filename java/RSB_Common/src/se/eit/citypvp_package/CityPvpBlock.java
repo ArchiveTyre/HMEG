@@ -14,6 +14,7 @@ static int woodstairsleft = 9;
 static int woodstairsright = 10;
 static int controlPanel = 11;
 static int log = 12;
+// id 13 = avatar figure.
 
 
 	

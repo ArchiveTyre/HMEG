@@ -73,32 +73,35 @@ public class CityPvpWorld extends WorldBase {
 		
 		
 		
-		//CityPvpRoom secondRoom = new CityPvpRoom(spawnRoom, "secondRoom");
+		CityPvpRoom secondRoom = new CityPvpRoom(spawnRoom, "secondRoom");
 		
-		//secondRoom.x = 1;
-	//	secondRoom.y = 2;
-	//	secondRoom.outerX=4;
-	//	secondRoom.outerY=2;
+		secondRoom.x = 1;
+		secondRoom.y = 2;
+		secondRoom.outerX=4;
+		secondRoom.outerY=2;
 		
-	//	secondRoom.itemtype = 6;
-	//	secondRoom.map[3][3] = 1;
-	//	secondRoom.map[0][1] = 1;
-	//	secondRoom.map[2][3] = 2;
-	//	secondRoom.map[10][10] = 2;
-	//	secondRoom.map[11][10] = 2;
-	//	secondRoom.map[12][10] = 2;
-	//	secondRoom.map[13][10] = 1;
-	//	secondRoom.map[14][10] = 1;
-	//	for(int x=0;x<secondRoom.xSectors;x++)
-	//	{
-	//		secondRoom.map[x][0] = 1;
-	//		secondRoom.map[x][secondRoom.ySectors-1] = 1;
-	//	}
-	//	for(int y=0;y<secondRoom.ySectors;y++)
-	//	{
-	//		secondRoom.map[0][y] = 1;
-	//		secondRoom.map[secondRoom.xSectors-1][y] = 1;
-	//	}
+		secondRoom.itemtype = 6;
+		secondRoom.map[3][3] = 1;
+		secondRoom.map[0][1] = 1;
+		secondRoom.map[2][3] = 2;
+		secondRoom.map[10][10] = 2;
+		secondRoom.map[11][10] = 2;
+		secondRoom.map[12][10] = 2;
+		secondRoom.map[13][10] = 1;
+		secondRoom.map[14][10] = 1;
+		for(int x=0;x<secondRoom.xSectors;x++)
+		{
+			secondRoom.map[x][0] = 1;
+			secondRoom.map[x][secondRoom.ySectors-1] = 1;
+		}
+		for(int y=0;y<secondRoom.ySectors;y++)
+		{
+			secondRoom.map[0][y] = 1;
+			secondRoom.map[secondRoom.xSectors-1][y] = 1;
+		}
+		
+		
+		
 	//	CityPvpRoom thirdRoom = new CityPvpRoom(spawnRoom, "thirdRoom");
 	//	
 	//	thirdRoom.x = 12;
@@ -261,10 +264,10 @@ public class CityPvpWorld extends WorldBase {
 	}
 	
 
-	public DbBase playerJoined(Player player)
+	public CityPvpAvatar playerJoined(Player player)
 	{
 		// Har spelaren en avatar redan
-		DbBase avatar = this.findDbNamedRecursive(player.getName(), 999);						
+		CityPvpAvatar avatar = (CityPvpAvatar) this.findDbNamedRecursive(player.getName(), 999);						
 
 		if (avatar==null)
 		{
@@ -300,16 +303,19 @@ public class CityPvpWorld extends WorldBase {
 	{
 		final long deltaTimeMs = tickTimeMs - this.tickTimeMs;
 		this.tickTimeMs += deltaTimeMs;
-		
-		// TODO: Here we do tick on all objects in this game regardless if those need it or not. We could use CPU more efficiently...
-		for (DbIdObj dio : idList)
+
+		if (notificationDataList.size()!=0)
 		{
-			if (dio instanceof CityPvpEntity)
+			// TODO: Here we do tick on all objects in this game regardless if those need it or not. We could use CPU more efficiently...
+			for (DbIdObj dio : idList)
 			{
-				CityPvpEntity cpe = (CityPvpEntity)dio;
-				cpe.tickEntityMs(deltaTimeMs);
+				if (dio instanceof CityPvpEntity)
+				{
+					CityPvpEntity cpe = (CityPvpEntity)dio;
+					cpe.tickEntityMs(deltaTimeMs);
+				}
 			}
-		}		
+		}
 	}
 
 }

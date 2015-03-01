@@ -19,9 +19,9 @@ public class ChatRoomServer extends ServerBase implements NotificationReceiver {
 		return ChatRoomServer.class.getSimpleName();	
 	}	
 	
-    public static void debug(String str)
+    public void debug(String str)
 	{
-    	WordWriter.safeDebug(className()+": "+str);
+    	WordWriter.safeDebug(className()+"("+stc.getTcpConnection().getInfo()+"): "+str);
 	}
 
     public static void error(String str)

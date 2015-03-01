@@ -174,9 +174,7 @@ function onMessage(evt)
 	}
 	else if (cmd=="openCityPvp")
 	{
-                // lägg till CityPvpBox här!!!   Jämför med "join" metoden i CityPvpServer.java
-		// Todo call openCityPvp
-                cityPvpOpen('CityPvp');
+		cityPvpOpen('CityPvp');
 	}
 	else if (cmd=="listClear")
 	{
@@ -192,6 +190,11 @@ function onMessage(evt)
 	{
 		// This will draw the main empire window
 		empireOpen(arg[1]);
+	}
+	else if (cmd=="openHmeg")
+	{
+		// This will draw the main HMEG window
+		hmegOpen(arg[1]);
 	}
 	else
 	{

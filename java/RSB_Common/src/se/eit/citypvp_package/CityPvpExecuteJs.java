@@ -1,3 +1,4 @@
+/*
 package se.eit.citypvp_package;
 import javax.script.*;
 public class CityPvpExecuteJs {
@@ -19,3 +20,4 @@ public class CityPvpExecuteJs {
     inv.invokeFunction("hello", "Scripting!!" );
 }
 }
+*/

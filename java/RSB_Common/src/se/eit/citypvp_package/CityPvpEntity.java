@@ -7,7 +7,6 @@ public class CityPvpEntity extends GameBase {
 	public int x = 0;
 	public int y = 0;
 	public int a = 0;
-	public int b = 0;
 	public int health = 20;
 	public int Oldx = 0;
 	public int Oldy = 0;
@@ -18,7 +17,6 @@ public class CityPvpEntity extends GameBase {
 	public int fill_wood = 0;
 	public int fill_stone = 0;
 	public int fill_mineral = 0;
-	public boolean moveTime = true; 
 	
 	
 	
@@ -45,9 +43,7 @@ public class CityPvpEntity extends GameBase {
 		health = wr.readInt();
 		itemtype = wr.readInt();
 		stack = wr.readInt();
-		fill_wood = wr.readInt();
-		fill_stone = wr.readInt();
-		fill_mineral = wr.readInt();
+		state = wr.readInt();
 	}
 	
 	
@@ -60,23 +56,14 @@ public class CityPvpEntity extends GameBase {
 		ww.writeInt(health);
 		ww.writeInt(itemtype);
 		ww.writeInt(stack);
-		ww.writeInt(fill_wood);
-		ww.writeInt(fill_stone);
-		ww.writeInt(fill_mineral);
+		ww.writeInt(state);
 	}
 	
 	// Denna metod anropas av game engine periodiskt
 	public void tickEntityMs(long deltaMs)
 	{
-		if (a < 101)
-		{
-			a+=deltaMs;
-		}
-		if (b < 101)
-		{
-		b+=deltaMs;
-		}
-		if (a>10)
+		a+=deltaMs;
+		if (a>100)
 		{	
 			if (this.getContainingObj() instanceof CityPvpRoom)
 			{
@@ -88,206 +75,190 @@ public class CityPvpEntity extends GameBase {
 			{
 				return;
 			}
-		
+
 			
 			
 			// DO GRAVITY
 			move(0,CityPvpBlock.inBlockGravity(cpr.map[x][y]));
-			a-=10;
-			
-			
-			
+			a-=1000;
 			}
 		}
-		if (b>100)
-		{
-			if (moveTime== false)
-			{
-			System.out.println("To be");
-			moveTime=true;
-			b-=10;
-			}
-			System.out.println("Or not to be");
-		}	
-		//System.out.println("That is the question to ask");
-		
 	}
 	
-	
 
-	public void doMoveAnimation(int dx, int dy)
-	{
-		
-		
-			/*if (state == 0) {state=2;}
-			else if (state == 1) {state=3;}
-			// Reverse
-			else if (state == 2) {state=0;}
-			else if (state == 3) {state=1;}
-			System.out.println("Brah chainging Animation "+state);
-			*/
+	public void doMoveAnimation(DbRoot ro)
+	{	
+		ro.lockWrite();
+		try {
 		if (state == 0) {state=2;}
 		else if (state == 1) {state=3;}
 		// Reverse
 		else if (state == 2) {state=0;}
-		else if (state == 3) {state=1;}
+		else if (state == 3) {state=1;}	
+		}
+		finally
+		{
+			ro.unlockWrite();
+		}
 	}
 	
 	
 	public void move(int dx, int dy)
 	{
 		
-		
-		//doMoveAnimation(dx, dy);
-		
-		
-		//Check if you may move
-		
-		if (moveTime == false)
-		{
-			return;
-		}
-		
-		
-		DbBase p = this.getParent();
-		
-		if (p instanceof CityPvpRoom)
-		{
+		DbRoot ro=this.getDbRoot();
 
-			CityPvpRoom cpr=(CityPvpRoom)p;
+		ro.lockWrite();
+		try{
+			///
 			
-			final int newX=x+dx;
-			final int newY=y+dy;
 			
-	        // Here we check that we will not move outside current room
-			if ( (newX<0) || (newX>=cpr.xSectors) || (newY<0) || (newY>=cpr.ySectors) )
+			DbBase p = this.getParent();
+			
+			if (p instanceof CityPvpRoom)
 			{
-				return;
-			}
-			// 2 = ladder    walkable block [trancperant]
-			if (/*cpr.map[newX][newY] == 0 || (cpr.map[newX][newY]==2)*/CityPvpBlock.isWalkable(cpr.map[newX][newY])==true)
-			{ 
-				if (cpr.map[newX][newY] == CityPvpBlock.doorOut)
-				{
-					DbContainer pp=this.getParent().getParent();
-					debug("move from "+getParent()+ "to "+pp.getId());
-					this.moveToRoomThreadSafe(pp);
-				}
-				
-				// Here we check if we bump into other entities
-				DbBase list[] = cpr.getListOfSubObjectsThreadSafe();
-				for(int i=0;i<list.length;i++)
-				{
-					if (list[i] instanceof CityPvpEntity)
-					{
-						CityPvpEntity cpe = (CityPvpEntity)list[i];
 	
-						// Get the size of entity
-						int eXSize=1;
-						int eYSize=1;
-						if(cpe instanceof CityPvpRoom)
+				CityPvpRoom cpr=(CityPvpRoom)p;
+				
+				final int newX=x+dx;
+				final int newY=y+dy;
+				
+		        // Here we check that we will not move outside current room
+				if ( (newX<0) || (newX>=cpr.xSectors) || (newY<0) || (newY>=cpr.ySectors) )
+				{
+					return;
+				}
+				// 2 = ladder    walkable block [trancperant]
+				if (/*cpr.map[newX][newY] == 0 || (cpr.map[newX][newY]==2)*/CityPvpBlock.isWalkable(cpr.map[newX][newY])==true)
+				{ 
+					if (cpr.map[newX][newY] == CityPvpBlock.doorOut)
+					{
+						DbContainer pp=this.getParent().getParent();
+						debug("move from "+getParent()+ "to "+pp.getId());
+						this.moveToRoomThreadSafe(pp);
+					}
+					
+					// Here we check if we bump into other entities
+					DbBase list[] = cpr.getListOfSubObjectsThreadSafe();
+					for(int i=0;i<list.length;i++)
+					{
+						if (list[i] instanceof CityPvpEntity)
 						{
-							CityPvpRoom e=(CityPvpRoom)cpe;
-							eXSize=e.outerX;
-						}
-						
-	                    // Check for collision with another entity
-						if ( ((newX>=cpe.x) && (newX <(cpe.x+eXSize))) && ((newY>=cpe.y) && (newY<(cpe.y+eYSize))))
-						{
-							if (cpe.itemtype!=6)
+							CityPvpEntity cpe = (CityPvpEntity)list[i];
+		
+							// Get the size of entity
+							int eXSize=1;
+							int eYSize=1;
+							if(cpe instanceof CityPvpRoom)
 							{
-								// Move not possible, we can not move onto this entity
-								return;
+								CityPvpRoom e=(CityPvpRoom)cpe;
+								eXSize=e.outerX;
 							}
-							else
+							
+		                    // Check for collision with another entity
+							if ( ((newX>=cpe.x) && (newX <(cpe.x+eXSize))) && ((newY>=cpe.y) && (newY<(cpe.y+eYSize))))
 							{
-								if (cpe != this)
+								if (cpe.itemtype!=6)
 								{
-								// This entity was a room. We can move into it.
-								debug("moveToRoom "+cpe.getId());
-								this.moveToRoomThreadSafe(cpe);
-								//this.moveToRoom(cpe);
-								((NotificationSender)getDbRoot()).notifySubscribers(-2);
-								x = 1;
-								y = 1;		
-								return;
+									// Move not possible, we can not move onto this entity
+									return;
 								}
 								else
 								{
-									debug("moveToRoom was not possible beacouse was its self "+cpe.getId());
-								
+									if (cpe != this)
+									{
+									// This entity was a room. We can move into it.
+									debug("moveToRoom "+cpe.getId());
+									this.moveToRoomThreadSafe(cpe);
+									//this.moveToRoom(cpe);
+									((NotificationSender)getDbRoot()).notifySubscribers(-2);
+									x = 1;
+									y = 1;		
+									return;
+									}
+									else
+									{
+										debug("moveToRoom was not possible beacouse was its self "+cpe.getId());
+									
+									}
 								}
+								
 							}
-							
 						}
 					}
-				}
-			//	finally
-			//	{
-			//		ro.unlockRead();
-		//		}
-				
-				if (cpr.map[x][y]!=2 && y+1<cpr.ySectors)
-				{	
-					if (cpr.map[x][y+1]==0 && newY<y)
-					{
-						return;
-					}
-				}
-				
-				// komihåg rutan den var i
-				Oldx= x;
-				Oldy= y;
-				
-				// kolla om rutan man vill gå till är tom
-				
-				
-				
-				
-				// DO zaaa animation.
-				
-				if (newX > x )
-				{
-				 if (state==2)
-				 {
-					state = 1; 
-				 }
-				
+				//	finally
+				//	{
+				//		ro.unlockRead();
+			//		}
 					
-				}
-				if (newX < x )
-				{	
-					if (state==1)
+					if (cpr.map[x][y]!=2 && y+1<cpr.ySectors)
+					{	
+						if (cpr.map[x][y+1]==0 && newY<y)
+						{
+							return;
+						}
+					}
+					
+					// komihåg rutan den var i
+					Oldx= x;
+					Oldy= y;
+					
+					// kolla om rutan man vill gå till är tom
+					
+					
+					
+					
+					// DO zaaa animation.
+					
+					if (newX > x )
+					{
+					 if (state==2)
 					 {
-						state = 2; 
+						state = 1; 
 					 }
+					
+						
+					}
+					if (newX < x )
+					{	
+						if (state==1)
+						 {
+							state = 2; 
+						 }
+					}
+					
+					// Här flyttas denna entity
+					x=newX;
+					y=newY;
+					
+					
+					doMoveAnimation(ro);
+					/*if (state == 0) {state=2;}
+					else if (state == 1) {state=3;}
+					// Reverse
+					else if (state == 2) {state=0;}
+					else if (state == 3) {state=1;}
+					*/
+				//	System.out.println("Brah chainging Animation "+state);
+			///////////////////////		/////////////////////move(0,CityPvpBlock.inBlockGravity(cpr.map[x][y]));
+			
+					// Uppdatera rutan den var i, och rutan den kommer till 
+					//CityPvpRoom.updateTile(Oldx, Oldy)
+					
+					// Tala om för servers att något har blivit ändrat
+			        //DbRoot dr = getDbRoot();
+			        //NotificationSender ns = (NotificationSender)dr;
+			       // ns.notifySubscribers(this.getId());
+			      //  this.setUpdateCounter();	
 				}
-				
-				// Här flyttas denna entity
-				x=newX;
-				y=newY;
-				//System.out.println("moved");
-				moveTime=false;
-				
-				
-				doMoveAnimation(newX, newY);
-				//if (state == 0) {state=2;}
-				//else if (state == 1) {state=3;}
-				// Reverse
-				//else if (state == 2) {state=0;}
-				//else if (state == 3) {state=1;}
-				//System.out.println("Brah chainging Animation "+state);
-				//move(0,CityPvpBlock.inBlockGravity(cpr.map[x][y]));
-		
-				// Uppdatera rutan den var i, och rutan den kommer till 
-				//CityPvpRoom.updateTile(Oldx, Oldy)
-				
-				// Tala om för servers att något har blivit ändrat
-		        DbRoot dr = getDbRoot();
-		        NotificationSender ns = (NotificationSender)dr;
-		        ns.notifySubscribers(this.getId());
 			}
 		}
+		finally
+		{
+			ro.unlockWrite();
+		}
+		this.setUpdateCounter();			
+
 	}
 
 	public CityPvpEntity findItem(int id)
@@ -329,58 +300,30 @@ public class CityPvpEntity extends GameBase {
 	
 	
 //	en natt natt natt min båt jag styrde
-	public void giveItem(int id , int count)
+	public void giveItem(int itemtype , int count)
 	{
+		debugWriteLock();
 		
-		//DbBase[] list = this.getListOfSubObjects();
 		
-		
-	//	for(int i=0;i<list.length;i++)
-	//	{
-	//		if (list[i] instanceof CityPvpEntity)
-		///	{
-			//	if ((CityPvpEntity)list[i].itemtype == id)
-			//	{
-					
-			//	}
-			//	//CityPvpEntity e = (CityPvpEntity)list[i];
-		//	}
-		//}	
-
-		DbRoot ro=this.getDbRoot();
-		CityPvpEntity cpe = this.findItem(id);
+		CityPvpEntity cpe = this.findItem(itemtype);
 		
 		if (cpe!=null)
 		{
-			// Increase existing object
-			try
-			{
-				ro.lockWrite();
-				cpe.stack+=1;			
-			}
-			finally
-			{
-				ro.unlockWrite();
-			}
-			
+			cpe.stack+=1;
+			cpe.setUpdateCounter();
 		}
 		else
 		{	
 			// Create a new object
 			cpe = new CityPvpEntity ();
-			cpe.itemtype = id;
+			cpe.setName("i"+itemtype); // All objects shall have some name in RSB
+			cpe.itemtype = itemtype;
 			cpe.stack = count;
-			
-			try
-			{
-				ro.lockWrite();
-				cpe.linkSelf(this);			
-			}
-			finally
-			{
-				ro.unlockWrite();
-			}
+			//cpe.state = ite; // temporary test for new JS client.
+			cpe.linkSelf(this);			
 	
+			cpe.setUpdateCounter(); // should not be needed here.
+
 			// assign coordinates to the new object.
 			// Objects in the inventory are placed from upper left according to index
 			if (this instanceof CityPvpRoom)

@@ -332,7 +332,7 @@ public class ServerTcpConnection {
 				break;
 			}
 						
-			debug("promptString \""+tag+"\" \""+defaultText+"\" \""+str+"\"");
+			//debug("promptString \""+tag+"\" \""+defaultText+"\" \""+str+"\"");
 
 			WordReader wr=new WordReader(str);
 			
@@ -374,7 +374,7 @@ public class ServerTcpConnection {
 				break;
 			}
 			
-			debug("promptInt \""+tag+"\" \""+defaultText+"\" \""+str+"\"");
+			//debug("promptInt \""+tag+"\" \""+defaultText+"\" \""+str+"\"");
 
 			WordReader wr=new WordReader(str);
 			
@@ -428,7 +428,7 @@ public class ServerTcpConnection {
 				break;
 			}
 						
-			debug("promptButtons \""+tag+"\" \""+defaultText+"\" \""+str+"\"");
+			//debug("promptButtons \""+tag+"\" \""+defaultText+"\" \""+str+"\"");
 
 			WordReader wr=new WordReader(str);
 			
@@ -491,7 +491,7 @@ public class ServerTcpConnection {
 			{
 				if (name.equals(possibilities[i]))
 				{
-					debug("answer matches alternative "+i);
+					//debug("answer matches alternative "+i);
 					found=true;
 				}
 			}
@@ -526,13 +526,13 @@ public class ServerTcpConnection {
 			// alert and confirm did not work with current web client, will use a generic button dialog instead. 
 			Object[] options = {"OK"};
 			
-        	int r = promptButtons(tag, defaultText, options);
+        	/*int r =*/ promptButtons(tag, defaultText, options);
 
-        	switch(r)
+        	/*switch(r)
         	{
-        		case 0: debug("alertBox: ok");
+        		case 0: debug("alertBox: ok");break;
     			default: debug("alertBox: not ok");
-        	}
+        	}*/
 		}
 		else
 		{
@@ -589,5 +589,13 @@ public class ServerTcpConnection {
     	return worldName;
     }
 	
+    public String getInfo()
+    {    	
+    	if (cc!=null)
+    	{
+    		return cc.getInfo();
+    	}
+    	return "closed";
+    }
 	
 }

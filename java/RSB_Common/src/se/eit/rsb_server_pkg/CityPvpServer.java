@@ -39,9 +39,9 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 		return CityPvpServer.class.getSimpleName();	
 	}	
 	
-    public static void debug(String str)
+    public void debug(String str)
 	{
-    	WordWriter.safeDebug(className()+": "+str);
+    	WordWriter.safeDebug(className()+"("+stc.getInfo()+"): "+str);
 	}
 
     public static void error(String str)
@@ -137,15 +137,15 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 	{
 		if (bo instanceof CityPvpWorld)
 		{
-			join((CityPvpWorld)bo);
+			joinCityPvp((CityPvpWorld)bo);
 		}
 		else
 		{
-			error("not a chat room");
+			error("not a city PVP game");
 		}
 	}
 
-	protected void join(CityPvpWorld bo)
+	protected void joinCityPvp(CityPvpWorld bo)
 	{
 		try 
 		{
@@ -308,85 +308,94 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 				}
 				else if (cmd.equals("keypress"))
 				{
-					String m=wr.readString();
-					//debug("keypress: "+m);
-	     	        WordReader mr=new WordReader(m);
-	     	        int k=mr.readInt();
-	     			CityPvpRoom cr=getCurrentRoom();
-	     			CityPvpEntity a = avatar;
-	     			if (cr==null)
-	     			{
-	     				return;
-	     			}
-
-	     			
-	     			// if in control room then 
-	     			if (cr.getParent() instanceof CityPvpRoom)
-	     			{
-	     				CityPvpRoom cpr=(CityPvpRoom)cr.getParent();
-	     				if (cr.isControlPanel(avatar.x,avatar.y))
-	     				{
-	     					a=cr;
-	     					cr=cpr;
-	     				}
-	     			}
-	     	        switch(k)
+					try
 					{
-	     	        case 'a':
-	     	        	a.move(-1,0);
-						break;
-	     	        case 'd':
-	     	        	a.move(1,0);
-						break;
-	     	        case 'w':
-	     	        	a.move(0,-1);
-						break;
-	     	        case 's':
-	     	        	a.move(0,1);
-						break;
-	     	       case 'g':
-	     	    	    // This is the cheat button, when user press it give more resources
-	     	    	    avatar.giveItem(0, 1);
-	     	        	avatar.giveItem(1, 2);
-	     	        	avatar.giveItem(2, 3);
-	     	        	avatar.giveItem(3, 4);
-	     	        	avatar.giveItem(7, 5);
-	     	        	avatar.giveItem(8, 6);
-	     	        	avatar.giveItem(9, 7);
-	     	        	avatar.giveItem(10, 8);
-	     	        	avatar.giveItem(11, 9);
-	     	        	avatar.fill_mineral+=1;
-	     	        	avatar.fill_stone+=1;
-	     	        	avatar.fill_wood+=1;
-						break;	
-	     	       case 'e':
-	     	    	    // This is the open or close inventory button
-	     	    	    debug("keypress e");
-	     	    	    if (state==0)
-	     	    	    {
-	     	    	    	state = 2;
-	     	    	    }
-	     	    	    else
-	     	    	    {
-	     	    	    	state = 0;
-	     	    	    }
-	     	        	notify(-1,-2);
-						break;	
-		     	      case 'q':
-		     	        	try
-		     	        	{
-		     	        		w.lockWrite();
-		     	        		avatar.moveBetweenRooms(a);
-			     	        	a = avatar;
-			     	        	avatar.move(-1, 0);
-		     	        	}
-		     	        	finally
-		     	        	{
-		     	        		w.unlockWrite();
-		     	        	}		     	        	
+						w.lockWrite();
+
+						String m=wr.readString();
+						//debug("keypress: "+m);
+		     	        WordReader mr=new WordReader(m);
+		     	        int k=mr.readInt();
+		     			CityPvpRoom cr=getCurrentRoom();
+		     			CityPvpEntity a = avatar;
+		     			if (cr==null)
+		     			{
+		     				return;
+		     			}
+	
+		     			
+		     			// if in control room then 
+		     			if (cr.getParent() instanceof CityPvpRoom)
+		     			{
+		     				CityPvpRoom cpr=(CityPvpRoom)cr.getParent();
+		     				if (cr.isControlPanel(avatar.x,avatar.y))
+		     				{
+		     					a=cr;
+		     					cr=cpr;
+		     				}
+		     			}
+		     	        switch(k)
+						{
+		     	        case 'a':
+		     	        	a.move(-1,0);
 							break;
-					default: 
-						break;
+		     	        case 'd':
+		     	        	a.move(1,0);
+							break;
+		     	        case 'w':
+		     	        	a.move(0,-1);
+							break;
+		     	        case 's':
+		     	        	a.move(0,1);
+							break;
+		     	       case 'g':
+		     	    	    // This is the cheat button, when user press it give more resources
+		     	    	    avatar.giveItem(0, 1);
+		     	        	avatar.giveItem(1, 2);
+		     	        	avatar.giveItem(2, 3);
+		     	        	avatar.giveItem(3, 4);
+		     	        	avatar.giveItem(7, 5);
+		     	        	avatar.giveItem(8, 6);
+		     	        	avatar.giveItem(9, 7);
+		     	        	avatar.giveItem(10, 8);
+		     	        	avatar.giveItem(11, 9);
+		     	        	avatar.fill_mineral+=1;
+		     	        	avatar.fill_stone+=1;
+		     	        	avatar.fill_wood+=1;
+							break;	
+		     	       case 'e':
+		     	    	    // This is the open or close inventory button
+		     	    	    debug("keypress e");
+		     	    	    if (state==0)
+		     	    	    {
+		     	    	    	state = 2;
+		     	    	    }
+		     	    	    else
+		     	    	    {
+		     	    	    	state = 0;
+		     	    	    }
+		     	        	notify(-1,-2);
+							break;	
+			     	      case 'q':
+			     	        	try
+			     	        	{
+			     	        		w.lockWrite();
+			     	        		avatar.moveBetweenRooms(a);
+				     	        	a = avatar;
+				     	        	avatar.move(-1, 0);
+			     	        	}
+			     	        	finally
+			     	        	{
+			     	        		w.unlockWrite();
+			     	        	}		     	        	
+								break;
+						default: 
+							break;
+						}
+					}
+					finally
+					{
+						w.unlockWrite();
 					}
 				}
 				else

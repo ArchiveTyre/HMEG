@@ -22,9 +22,9 @@ public class TextAdventureServer extends ServerBase implements NotificationRecei
 		return TextAdventureServer.class.getSimpleName();	
 	}	
 	
-    public static void debug(String str)
+    public void debug(String str)
 	{
-    	WordWriter.safeDebug(className()+": "+str);
+    	WordWriter.safeDebug(className()+"("+stc.getInfo()+"): "+str);
 	}
 
     public static void error(String str)

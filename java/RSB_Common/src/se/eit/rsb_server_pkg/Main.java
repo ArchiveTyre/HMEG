@@ -377,7 +377,7 @@ public class Main {
 		dbRoot = loadExistingWorldsAndPlayers();
 
 		debug("Create and start tick, the thread that updates the world");
-		tickThread = new TickThread(dbRoot);
+		tickThread = new TickThread(config, dbRoot);
 		Thread ttt = new Thread(tickThread);
 	 	ttt.start();
 

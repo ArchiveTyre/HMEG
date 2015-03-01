@@ -28,9 +28,9 @@ public abstract class ServerBase {
 		return ServerBase.class.getSimpleName();	
 	}	
 	
-    public static void debug(String str)
+    public void debug(String str)
 	{
-    	WordWriter.safeDebug(className()+": "+str);
+    	WordWriter.safeDebug(className()+"("+stc.getInfo()+"): "+str);
 	}
 
     public static void error(String str)

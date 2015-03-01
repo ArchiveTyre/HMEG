@@ -3,6 +3,8 @@
 // Created 2014-12-31 by Henrik Bjorkman www.eit.se/hb
 
 
+var rootDiv=null;
+
 // http://www.html5canvastutorials.com/advanced/html5-canvas-mouse-coordinates/
 // This solution work in most cases. But in android-chrome it does not work if user has zoomed in.
 function mapGetMousePos(canvas, evt) {
@@ -27,10 +29,6 @@ DivBase.prototype.defineDiv=function(divSize)
 	console.log('defineDiv not implemented '+divSize.x+" "+divSize.y);
 }
 
-DivBase.prototype.addEventListenersDiv=function()
-{
-	console.log('addEventListenersDiv not implemented');
-}
 
 DivBase.prototype.drawDiv=function()
 {
@@ -63,34 +61,34 @@ DivBase.prototype.addEventListenersDiv=function(canvasName)
 	}, false);
 
 	canvas.addEventListener('mousedown', function (evt) {
-		empWin.mapMouseDownPos = mapGetMousePos(canvas, evt);
+		rootDiv.mapMouseDownPos = mapGetMousePos(canvas, evt);
 	}, false);
 
 
 	canvas.addEventListener('mouseup', function (evt) {
 		var mouseUpPos = mapGetMousePos(canvas, evt);
 
-		var d=calcDist(mouseUpPos, empWin.mapMouseDownPos);
+		var d=calcDist(mouseUpPos, rootDiv.mapMouseDownPos);
 
-		if (d<=1.5)
+		if (d<=3)
 		{
 			// regular click
-			console.log('Sector click position: ' + mouseUpPos.x + "," + mouseUpPos.y+" "+d);
-			empWin.mapGetStateHandler().click(mouseUpPos);
+			console.log('click position: ' + mouseUpPos.x + "," + mouseUpPos.y+" "+d);
+			rootDiv.subWin.click(mouseUpPos);
 		}
 		else
 		{
 			// drag
 			// This is to scroll (move the visible part of) the map, not implemented yet
-			console.log('mouse down position: ' + empWin.mapMouseDownPos.x + "," + empWin.mapMouseDownPos.y);
+			console.log('mouse down position: ' + rootDiv.mapMouseDownPos.x + "," + rootDiv.mapMouseDownPos.y);
 			console.log('mouse up position: ' + mouseUpPos.x + "," + mouseUpPos.y);
 			console.log('dist: ' + d);
-			empWin.mapGetStateHandler().drag(empWin.mapMouseDownPos, mouseUpPos);
+			rootDiv.subWin.drag(rootDiv.mapMouseDownPos, mouseUpPos);
 			
 		}
 
 		// TODO: This call should be done somewhere else, this does not add an event listener.
-		//empWin.mapUpdateUpperTextAreas();
+		//rootDiv.mapUpdateUpperTextAreas();
 
 	}, false);
 }
@@ -103,5 +101,16 @@ DivBase.prototype.mouseDiff=function(m1, m2)
 }
 
 
+DivBase.prototype.getRootDiv=function()
+{
+	/*
+	if (this.parentWin!=null)
+	{
+		return this.getRootDiv();
+	}
+	return this;
+	*/
+	return rootDiv;
+}
 
 
