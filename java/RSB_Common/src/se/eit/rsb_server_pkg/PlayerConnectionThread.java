@@ -279,26 +279,26 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
 					            	{
 					            		return;
 					            	}
-					            	else if (isEmailAddressOk(emailAddress))
+					            	else if (isEmailAddressOk(emailAddress))*/
 					    			{					    				
 					    				player.password=pw;
-					    				player.emailAddress=emailAddress;
+					    				player.emailAddress="emailAddress";
 					    				this.player=player;
 				    					DbRoot playersDb = stc.findOrCreatePlayersDb();
 					    				playersDb.addObjectAndSave(player, config);
 
 					    				stc.alertBox("player_reg_accepted", "player reg accepted");
 					    				
-						    			int r=SendEmail.sendEmailTo(player.emailAddress, "mpe", "Hello " + player.getName()+ "\nWelcome to MultiPlayerEmpire\nwww.eit.se/hb/mpe\nActivation code: "+player.emailVerificationCode +"\n\n");
+						    			//int r=SendEmail.sendEmailTo(player.emailAddress, "mpe", "Hello " + player.getName()+ "\nWelcome to MultiPlayerEmpire\nwww.eit.se/hb/mpe\nActivation code: "+player.emailVerificationCode +"\n\n");
 
-						    			if (r!=0)
+						    			//if (r!=0)
 						    			{
 						    				stc.alertBox("email_failed", "sending email did not seem to work"); 
 						    			}
 					    				
 					    				return;
 					    			}
-					            	else
+					            	/*else
 					            	{
 					            		stc.alertBox("email_not_ok", "the entered email address was not ok");
 					            	}
