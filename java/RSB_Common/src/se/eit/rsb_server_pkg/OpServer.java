@@ -5,7 +5,7 @@ import java.io.IOException;
 import se.eit.db_package.DbBase;
 //import se.eit.empire_package.EmpireState;
 //import se.eit.empire_package.EmpireWorld;
-import se.eit.rsb_package.GlobalConfig;
+import se.eit.rsb_srv_main_pkg.GlobalConfig;
 import se.eit.rsb_package.Player;
 import se.eit.rsb_package.WorldBase;
 import se.eit.web_package.WordReader;
@@ -13,7 +13,7 @@ import se.eit.web_package.WordWriter;
 
 public abstract class OpServer extends MirrorServer {
 
-	DbBase defaultObj;
+	protected DbBase defaultObj;
 
 	
 	public OpServer(GlobalConfig config, Player player, ServerTcpConnection stc) {

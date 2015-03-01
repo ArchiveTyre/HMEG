@@ -12,7 +12,7 @@ import se.eit.db_package.DbIdObj;
 import se.eit.db_package.NotificationReceiver;
 //import se.eit.empire_package.EmpireState;
 import se.eit.rsb_package.GameBase;
-import se.eit.rsb_package.GlobalConfig;
+import se.eit.rsb_srv_main_pkg.GlobalConfig;
 import se.eit.rsb_package.Player;
 import se.eit.rsb_package.WorldBase;
 import se.eit.web_package.MyBlockingQueue;
@@ -41,9 +41,9 @@ public abstract class MirrorServer extends ServerBase implements NotificationRec
 	// idObjectsToUpdate keeps a list of objects that needs to be sent to client
 	MyBlockingQueue<Integer> idObjectsToUpdate = new MyBlockingQueue<Integer>(100);
 
-	WorldBase worldBase = null;
+	protected WorldBase worldBase = null;
 	
-	GameBase playerAvatar; // TODO: This shall be of some avatar class.
+	protected GameBase playerAvatar; // TODO: This shall be of some avatar class.
 
 	private int updateSequenceNumberToSend=0;
 	protected int updateSequenceNumberReceived=0;

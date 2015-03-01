@@ -1,7 +1,7 @@
 package se.eit.rsb_server_pkg;
 
 import se.eit.db_package.DbRoot;
-import se.eit.rsb_package.GlobalConfig;
+import se.eit.rsb_srv_main_pkg.GlobalConfig;
 import se.eit.web_package.WebConnection;
 import se.eit.web_package.WebSocketConnection;
 import se.eit.web_package.WebSocketServer;

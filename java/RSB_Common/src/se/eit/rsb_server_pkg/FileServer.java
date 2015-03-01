@@ -37,7 +37,7 @@ import java.net.*;
 import se.eit.citypvp_package.CityPvpRoom;
 import se.eit.db_package.DbBase;
 import se.eit.db_package.DbRoot;
-import se.eit.rsb_package.GlobalConfig;
+import se.eit.rsb_srv_main_pkg.GlobalConfig;
 import se.eit.web_package.*;
 
 

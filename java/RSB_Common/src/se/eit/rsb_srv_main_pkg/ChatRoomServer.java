@@ -1,9 +1,12 @@
-package se.eit.rsb_server_pkg;
+package se.eit.rsb_srv_main_pkg;
 
 
 import java.io.IOException;
 
 import se.eit.rsb_package.*;
+import se.eit.rsb_server_pkg.ServerBase;
+import se.eit.rsb_server_pkg.ServerTcpConnection;
+import se.eit.rsb_srv_main_pkg.GlobalConfig;
 import se.eit.db_package.*;
 import se.eit.web_package.*;
 
@@ -101,7 +104,7 @@ public class ChatRoomServer extends ServerBase implements NotificationReceiver {
 		return (ChatRoomWorld)ro;				
 	}
 	
-	protected void join(DbBase bo)
+	public void join(DbBase bo)
 	{
 		if (bo instanceof ChatRoomWorld)
 		{

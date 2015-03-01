@@ -18,7 +18,7 @@ Created by Henrik Bjorkman (www.eit.se/hb)
 
 
 
-package se.eit.rsb_server_pkg;
+package se.eit.rsb_srv_main_pkg;
 
 import java.awt.Desktop;
 import java.io.BufferedReader;
@@ -29,6 +29,9 @@ import java.io.IOException;
 //import java.io.InputStream;
 
 import se.eit.rsb_package.*;
+import se.eit.rsb_server_pkg.FileServer;
+import se.eit.rsb_server_pkg.SocketServer;
+import se.eit.rsb_server_pkg.TickThread;
 
 import java.io.PrintWriter;
 import java.net.URI;

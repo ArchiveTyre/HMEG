@@ -1,6 +1,6 @@
 package se.eit.rsb_server_pkg;
 
-import se.eit.rsb_package.GlobalConfig;
+import se.eit.rsb_srv_main_pkg.GlobalConfig;
 import se.eit.rsb_package.Player;
 import se.eit.db_package.*;
 import se.eit.web_package.*;
@@ -18,9 +18,9 @@ import se.eit.web_package.*;
 
 public abstract class ServerBase {
 
-	GlobalConfig config;
-	ServerTcpConnection stc;
-	Player player;
+	protected GlobalConfig config;
+	protected ServerTcpConnection stc;
+	protected Player player;
 	
 	public static String className()
 	{	

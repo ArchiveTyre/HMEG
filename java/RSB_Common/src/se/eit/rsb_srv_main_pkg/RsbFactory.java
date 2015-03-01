@@ -1,4 +1,4 @@
-package se.eit.rsb_server_pkg;
+package se.eit.rsb_srv_main_pkg;
 
 import se.eit.TextAdventure.TextAdventureWorld;
 import se.eit.citypvp_package.CityPvpAvatar;

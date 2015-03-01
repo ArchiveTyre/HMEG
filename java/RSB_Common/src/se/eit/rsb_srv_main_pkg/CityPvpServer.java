@@ -1,9 +1,19 @@
-package se.eit.rsb_server_pkg;
+/*
+CityPvpeServer.java
+
+Copyright (c) 2015 Henrik Björkman (www.eit.se/hb)
+
+*/
+
+package se.eit.rsb_srv_main_pkg;
 
 
 import java.io.IOException;
 
 import se.eit.rsb_package.*;
+import se.eit.rsb_server_pkg.ServerBase;
+import se.eit.rsb_server_pkg.ServerTcpConnection;
+import se.eit.rsb_srv_main_pkg.GlobalConfig;
 import se.eit.citypvp_package.*;
 import se.eit.db_package.*;
 import se.eit.web_package.*;
@@ -133,7 +143,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 	}
 
 	
-	protected void join(DbBase bo)
+	public void join(DbBase bo)
 	{
 		if (bo instanceof CityPvpWorld)
 		{
