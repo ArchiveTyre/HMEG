@@ -118,7 +118,7 @@ HmegWinMsg.prototype.showMessagesOnTextArea=function(textAreaName, r)
 
 HmegWinMsg.prototype.textBoxAppend=function(textAreaName, msg)
 {
-	console.log("textBoxAppend "+msg);
+	//console.log("textBoxAppend "+msg);
 	var e = document.getElementById(textAreaName);
 
 	e.value+=hlibRemoveQuotes(msg)+"\n";

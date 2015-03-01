@@ -12,8 +12,10 @@ function DivImg(imgName)
 	var canvas = document.createElement('canvas');
 	var context = canvas.getContext('2d');
 
-	canvas.width = empImageDefaultSize;
-	canvas.height = empImageDefaultSize;
+	this.imageDefaultSize = 32;
+
+	canvas.width = this.imageDefaultSize;
+	canvas.height = this.imageDefaultSize;
 	
 	//context.fillStyle="#C0C0E0";				
 	//context.fillRect(0, 0, canvas.width, canvas.height);
@@ -28,7 +30,7 @@ function DivImg(imgName)
 	img.onload = function() {
 		// image is now loaded, put it on the local canvas.
 		context.clearRect(0, 0, canvas.width, canvas.height);
-		context.drawImage(img, 0, 0, empImageDefaultSize, empImageDefaultSize);
+		context.drawImage(img, 0, 0, this.imageDefaultSize, this.imageDefaultSize);
 		DivImagesBeingLoaded--;
 		if (DivImagesBeingLoaded<=0) // this was the last image to be loaded, redraw the window, now with images.
 		{
@@ -40,7 +42,7 @@ function DivImg(imgName)
 		// loading image failed, write some text on the local canvas instead.
 		context.font = '8pt Calibri';
 		context.fillStyle = 'black';
-		context.fillText(t.imgName, 0, empImageDefaultSize*0.8);
+		context.fillText(t.imgName, 0, this.imageDefaultSize*0.8);
 		DivImagesBeingLoaded--;
 		if (DivImagesBeingLoaded<=0) // this was the last image to be loaded. It failed, but others may have been loaded OK so redraw window anyway.
 		{
