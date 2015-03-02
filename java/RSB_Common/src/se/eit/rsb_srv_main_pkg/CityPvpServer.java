@@ -347,16 +347,16 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 		     	        switch(k)
 						{
 		     	        case 'a':
-		     	        	a.move(-1,0);
+		     	        	a.move(-1,0, 0);
 							break;
 		     	        case 'd':
-		     	        	a.move(1,0);
+		     	        	a.move(1,0, 0);
 							break;
 		     	        case 'w':
-		     	        	a.move(0,-1);
+		     	        	a.move(0,-1, 0);
 							break;
 		     	        case 's':
-		     	        	a.move(0,1);
+		     	        	a.move(0,1, 0);
 							break;
 		     	       case 'g':
 		     	    	    // This is the cheat button, when user press it give more resources
@@ -392,7 +392,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 			     	        		w.lockWrite();
 			     	        		avatar.moveBetweenRooms(a);
 				     	        	a = avatar;
-				     	        	avatar.move(-1, 0);
+				     	        	avatar.move(-1, 0, 1);
 			     	        	}
 			     	        	finally
 			     	        	{

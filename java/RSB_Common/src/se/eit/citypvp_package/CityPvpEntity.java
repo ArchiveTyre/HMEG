@@ -12,7 +12,7 @@ public class CityPvpEntity extends GameBase {
 	public int Oldx = 0;
 	public int Oldy = 0;
 	// entity i entity (item) comer att display'a 
-	public int speedrecoil = 500;
+	public int speedrecoil = 250;
 	public int state = 0;
 	public int stack = 0;
 	public int itemtype = 0;
@@ -91,7 +91,7 @@ public class CityPvpEntity extends GameBase {
 			
 			
 			// DO GRAVITY
-			move(0,CityPvpBlock.inBlockGravity(cpr.map[x][y]));
+			move(0,CityPvpBlock.inBlockGravity(cpr.map[x][y]), 1);
 			a-=1000;
 			}
 		}
@@ -115,20 +115,22 @@ public class CityPvpEntity extends GameBase {
 	}
 	
 	
-	public void move(int dx, int dy)
+	public void move(int dx, int dy, int mode)
 	{
-		// Movement speed restriction.
-		if (b >= (100))
-		{
-			//System.out.println("entity: "+b);
-				
+		if (mode == 0)
+			{
+			// Movement speed restriction.
+			if (b >= (100))
+			{
+				//System.out.println("entity: "+b);
+					
+			}
+			else
+			{
+				//System.out.println("entity: "+b);
+				return;
+			}
 		}
-		else
-		{
-			//System.out.println("entity: "+b);
-			return;
-		}
-		
 		
 		DbRoot ro=this.getDbRoot();
 
@@ -260,9 +262,10 @@ public class CityPvpEntity extends GameBase {
 					
 					//// SPEED CONTROL
 					
-					
-					b-=speedrecoil;
-					
+					if (mode == 0)
+					{
+						b-=speedrecoil;
+					}
 			
 			
 					// Uppdatera rutan den var i, och rutan den kommer till 
