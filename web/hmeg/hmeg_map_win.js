@@ -118,9 +118,10 @@ HmegMapWin.prototype.showWorldMapSectors=function(context, hmegRoom)
 			
 				var xy=this.translateBlockToCanvas(x,y);	
 			
-				//context.fillStyle="#0080F0";				
-				//context.fillRect(xy.x, xy.y, this.sectorWidth, this.sectorHeight);
-				//this.context.drawImage(tmpCanvas, 0, 0);
+				// This is for debugging, remove later
+				context.fillStyle="#0080F0";				
+				context.fillRect(xy.x, xy.y, this.sectorWidth, this.sectorHeight);
+
 				var argu = 0;
 				var block = hmegRoom.img[r+"_"+argu];
 				if (block === undefined)
@@ -179,8 +180,10 @@ HmegMapWin.prototype.showWorldMapSectors=function(context, hmegRoom)
 
 				}
 				
-				//context.fillStyle="#808000";				
-				//context.fillRect(xy.x, xy.y, this.sectorWidth, this.sectorHeight);
+				// This is for debugging, remove later				
+				context.fillStyle="#80F000";				
+				context.fillRect(xy.x, xy.y, this.sectorWidth, this.sectorHeight);
+				
 				s.showSelfContextXY(context ,xy.x, xy.y, this.sectorWidth, this.sectorHeight);
 
 
