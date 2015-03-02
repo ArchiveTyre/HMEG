@@ -7,10 +7,12 @@ public class CityPvpEntity extends GameBase {
 	public int x = 0;
 	public int y = 0;
 	public int a = 0;
+	public int b = 0;
 	public int health = 20;
 	public int Oldx = 0;
 	public int Oldy = 0;
 	// entity i entity (item) comer att display'a 
+	public int speedrecoil = 500;
 	public int state = 0;
 	public int stack = 0;
 	public int itemtype = 0;
@@ -62,8 +64,18 @@ public class CityPvpEntity extends GameBase {
 	// Denna metod anropas av game engine periodiskt
 	public void tickEntityMs(long deltaMs)
 	{
-		a+=deltaMs;
-		if (a>100)
+		
+		//b+=deltaMs;
+		if (b<75+1 || deltaMs+b > 75+1 && b<75+1)
+		{
+			b+=deltaMs;
+		}
+		//a+=deltaMs;
+		if (a<75+1)
+		{
+			a+=deltaMs;
+		}
+		if (a>75)
 		{	
 			if (this.getContainingObj() instanceof CityPvpRoom)
 			{
@@ -105,6 +117,18 @@ public class CityPvpEntity extends GameBase {
 	
 	public void move(int dx, int dy)
 	{
+		// Movement speed restriction.
+		if (b >= (100))
+		{
+			//System.out.println("entity: "+b);
+				
+		}
+		else
+		{
+			//System.out.println("entity: "+b);
+			return;
+		}
+		
 		
 		DbRoot ro=this.getDbRoot();
 
@@ -226,21 +250,20 @@ public class CityPvpEntity extends GameBase {
 							state = 2; 
 						 }
 					}
-					
+					doMoveAnimation(ro);
 					// Här flyttas denna entity
 					x=newX;
 					y=newY;
 					
 					
-					doMoveAnimation(ro);
-					/*if (state == 0) {state=2;}
-					else if (state == 1) {state=3;}
-					// Reverse
-					else if (state == 2) {state=0;}
-					else if (state == 3) {state=1;}
-					*/
-				//	System.out.println("Brah chainging Animation "+state);
-			///////////////////////		/////////////////////move(0,CityPvpBlock.inBlockGravity(cpr.map[x][y]));
+					
+					
+					//// SPEED CONTROL
+					
+					
+					b-=speedrecoil;
+					
+			
 			
 					// Uppdatera rutan den var i, och rutan den kommer till 
 					//CityPvpRoom.updateTile(Oldx, Oldy)
