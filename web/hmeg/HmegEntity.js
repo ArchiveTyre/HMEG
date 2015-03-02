@@ -36,6 +36,7 @@ HmegEntity.prototype.initSelf=function()
 	this.img["13_1"] = new DivImg("avatar_1");
 	this.img["13_2"] = new DivImg("avatar_2");
 	this.img["13_3"] = new DivImg("avatar_3");
+	this.img["14_0"] = new DivImg("ballon")
 }
 
 

@@ -226,6 +226,8 @@ public class HmegServer extends OpServer
 			     	        	avatar.giveItem(9, 7);
 			     	        	avatar.giveItem(10, 8);
 			     	        	avatar.giveItem(11, 9);
+			     	        	avatar.giveItem(14, 9);
+			     	        	
 			     	        	avatar.fill_mineral+=1;
 			     	        	avatar.fill_stone+=1;
 			     	        	avatar.fill_wood+=1;

@@ -11,6 +11,7 @@ public class CityPvpEntity extends GameBase {
 	public int health = 20;
 	public int Oldx = 0;
 	public int Oldy = 0;
+	public int mass = 1;
 	// entity i entity (item) comer att display'a 
 	public int speedrecoil = 250;
 	public int state = 0;
@@ -87,7 +88,10 @@ public class CityPvpEntity extends GameBase {
 			{
 				return;
 			}
-
+			if (mass < 0)
+			{
+				return;
+			}
 			
 			
 			// DO GRAVITY
@@ -221,7 +225,14 @@ public class CityPvpEntity extends GameBase {
 					{	
 						if (cpr.map[x][y+1]==0 && newY<y)
 						{
+							if (mass < 0 )
+							{
+								
+							}
+							else
+							{	
 							return;
+							}
 						}
 					}
 					

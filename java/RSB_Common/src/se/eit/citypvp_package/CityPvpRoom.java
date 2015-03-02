@@ -99,6 +99,29 @@ public class CityPvpRoom extends CityPvpEntity{
         }
 		return -1;
 	}
+	public int getMass ()
+	{
+		int m = 0;
+		for (int x = 0; x < xSectors; x++)
+		{
+		
+			for (int y = 0; y < ySectors; y++)
+			{
+			/// TODO	m += CityPvpBlock.blockmass
+			if (this.map[x][y] > 0)
+			{
+				m +=1;
+			}
+			if (this.map [x] [y] == CityPvpBlock.ballon)
+			{
+				m = m -2;
+			}
+		}
+
+		}
+	return m ;
+	}
+	
 	public void changeTile(int x, int y, int id)
 	{
         if ( ((x<xSectors) && (y<ySectors)) && ((x>-1)&&(y>-1)) ) 
@@ -110,10 +133,11 @@ public class CityPvpRoom extends CityPvpEntity{
         /*DbRoot dr = getDbRoot();
         NotificationSender ns = (NotificationSender)dr;
         ns.notifySubscribers(this.getId());*/
-        
+        mass = getMass();
      	this.setUpdateCounter();
 
-        image=null;        
+        image=null;   
+        
 	}
 	/*
 	public int list(PlayerCommandInterpreter pci)
