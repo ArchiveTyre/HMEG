@@ -119,9 +119,6 @@ HmegWinInventory.prototype.showWorldMapSectors=function(context, hmegRoom)
 			{
 				var s=cl[i];		
 				
-				// TODO use a translate function.
-				//var px = (i%10)*(this.sectorWidth+4) ;
-				//var py = (Math.floor(i/10))*(this.sectorHeight+4);
 				
 				var xy = this.translateBlockToCanvas(i);
 						
@@ -132,6 +129,11 @@ HmegWinInventory.prototype.showWorldMapSectors=function(context, hmegRoom)
 				context.fillRect(xy.x, xy.y, this.sectorWidth, this.sectorHeight);
 				
 				s.showSelfContextXY(context ,xy.x, xy.y, this.sectorWidth, this.sectorHeight);
+
+
+				context.font = '8pt Calibri';
+				context.fillStyle = 'black';
+				context.fillText(""+s.stack ,xy.x , xy.y+16);
 
 			}
 		}
