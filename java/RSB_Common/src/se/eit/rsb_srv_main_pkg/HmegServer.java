@@ -106,7 +106,12 @@ public class HmegServer extends OpServer
 	}
 	
 
-	
+	protected void unknownCommand(String cmd)
+	{
+		debug("unknown command from client '"+player.getName()+"' "+cmd);
+		stc.error("unknown command " + cmd);
+	}
+
 	
 	protected void joinHmeg(HmegWorld w)
 	{
@@ -166,214 +171,250 @@ public class HmegServer extends OpServer
 					
 					final String cmd=wr.readWord();					
 	
+					final char ch=cmd.charAt(0);
 					
-					
-					if (cmd.equals("mirrorAck")) // TODO: This shall be in class MirrorServer
+					switch(ch)
 					{
-						updateSequenceNumberReceived=wr.readInt();
-					}
-					else if (cmd.equals("keypress"))
-					{
-						try
+					case 'k':
+						if (cmd.equals("keypress"))
 						{
-							w.lockWrite();
-							
-							String m=wr.readString();
-							//debug("keypress: "+m);
-			     	        WordReader mr=new WordReader(m);
-			     	        int k=mr.readInt();
-			     			CityPvpRoom cr=getCurrentRoom();
-			     			CityPvpEntity a = avatar;
-			     			if (cr==null)
-			     			{
-			     				return;
-			     			}
-
-			     			
-			     			// if in control room then 
-			     			if (cr.getParent() instanceof CityPvpRoom)
-			     			{
-			     				CityPvpRoom cpr=(CityPvpRoom)cr.getParent();
-			     				if (cr.isControlPanel(avatar.x,avatar.y))
-			     				{
-			     					a=cr;
-			     					cr=cpr;
-			     				}
-			     			}
-			     	        switch(k)
+							try
 							{
-			     	        case 'a':
-			     	        	a.move(-1,0, 0);
-								break;
-			     	        case 'd':
-			     	        	a.move(1,0, 0);
-								break;
-			     	        case 'w':
-			     	        	a.move(0,-1, 0);
-								break;
-			     	        case 's':
-			     	        	a.move(0,1, 0);
-								break;
-			     	       case 'g':
-			     	    	    // This is the cheat button, when user press it give more resources
-			     	    	    debug("giveItem");
-			     	    	    avatar.giveItem(0, 1);
-			     	        	avatar.giveItem(1, 2);
-			     	        	avatar.giveItem(2, 3);
-			     	        	avatar.giveItem(3, 4);
-			     	        	avatar.giveItem(7, 5);
-			     	        	avatar.giveItem(8, 6);
-			     	        	avatar.giveItem(9, 7);
-			     	        	avatar.giveItem(10, 8);
-			     	        	avatar.giveItem(11, 9);
-			     	        	avatar.giveItem(14, 9);
-			     	        	
-			     	        	avatar.fill_mineral+=1;
-			     	        	avatar.fill_stone+=1;
-			     	        	avatar.fill_wood+=1;
-			     	        	avatar.postMessage("resources given");
-			     	        	avatar.setUpdateCounter();
-								break;	
-			     	       /*case 'e':
-			     	    	    // This is the open or close inventory button
-			     	    	    debug("keypress e");
-			     	    	    if (state==0)
-			     	    	    {
-			     	    	    	state = 2;
-			     	    	    }
-			     	    	    else
-			     	    	    {
-			     	    	    	state = 0;
-			     	    	    }
-			     	        	notify(-1,-2);
-								break;	*/
-				     	      case 'q':
-				     	        	try
-				     	        	{
-				     	        		w.lockWrite();
-				     	        		avatar.moveBetweenRooms(a);
-					     	        	a = avatar;
-					     	        	avatar.move(-1, 0, 0);
-				     	        	}
-				     	        	finally
-				     	        	{
-				     	        		w.unlockWrite();
-				     	        	}		     	        	
+								w.lockWrite();
+								
+								String m=wr.readString();
+								//debug("keypress: "+m);
+				     	        WordReader mr=new WordReader(m);
+				     	        int k=mr.readInt();
+				     			CityPvpRoom cr=getCurrentRoom();
+				     			CityPvpEntity a = avatar;
+				     			if (cr==null)
+				     			{
+				     				return;
+				     			}
+
+				     			
+				     			// if in control room then 
+				     			if (cr.getParent() instanceof CityPvpRoom)
+				     			{
+				     				CityPvpRoom cpr=(CityPvpRoom)cr.getParent();
+				     				if (cr.isControlPanel(avatar.x,avatar.y))
+				     				{
+				     					a=cr;
+				     					cr=cpr;
+				     				}
+				     			}
+				     	        switch(k)
+								{
+					 	        case 'a':
+					 	        	a.move(-1,0, 0);
 									break;
-							default: 
-								break;
+					 	        case 'd':
+					 	        	a.move(1,0, 0);
+									break;
+					 	        case 'w':
+					 	        	a.move(0,-1, 0);
+									break;
+					 	        case 's':
+					 	        	a.move(0,1, 0);
+									break;
+					 	       case 'g':
+					 	    	    // This is the cheat button, when user press it give more resources
+					 	    	    debug("giveItem");
+					 	    	    avatar.giveItem(0, 1);
+					 	        	avatar.giveItem(1, 2);
+					 	        	avatar.giveItem(2, 3);
+					 	        	avatar.giveItem(3, 4);
+					 	        	avatar.giveItem(7, 5);
+					 	        	avatar.giveItem(8, 6);
+					 	        	avatar.giveItem(9, 7);
+					 	        	avatar.giveItem(10, 8);
+					 	        	avatar.giveItem(11, 9);
+					 	        	avatar.giveItem(14, 9);
+					 	        	
+					 	        	avatar.fill_mineral+=1;
+					 	        	avatar.fill_stone+=1;
+					 	        	avatar.fill_wood+=1;
+					 	        	avatar.postMessage("resources given");
+					 	        	avatar.setUpdateCounter();
+									break;	
+					 	       /*case 'e':
+					 	    	    // This is the open or close inventory button
+					 	    	    debug("keypress e");
+					 	    	    if (state==0)
+					 	    	    {
+					 	    	    	state = 2;
+					 	    	    }
+					 	    	    else
+					 	    	    {
+					 	    	    	state = 0;
+					 	    	    }
+					 	        	notify(-1,-2);
+									break;	*/
+						 	      case 'q':
+						 	        	try
+						 	        	{
+						 	        		w.lockWrite();
+						 	        		avatar.moveBetweenRooms(a);
+							 	        	a = avatar;
+							 	        	avatar.move(-1, 0, 0);
+						 	        	}
+						 	        	finally
+						 	        	{
+						 	        		w.unlockWrite();
+						 	        	}		     	        	
+										break;
+								default: 
+									break;
+								}
+
 							}
-
+							finally
+							{
+								w.unlockWrite();
+							}
+							
 						}
-						finally
+						else
 						{
-							w.unlockWrite();
+							unknownCommand(cmd);
 						}
-						
-					}
-					else if (cmd.equals("inventoryClick"))
-					{
-						final String s=wr.readString();
-						final int i=Integer.parseInt(s);
-						
-	     	        	CityPvpEntity obj = (CityPvpEntity) avatar.getObjFromIndex(i);
-	     	        	if (obj !=null)
-	     	        	{
-		     	        	currentbuilding = obj.itemtype;
-			     	        notify(-1,-2);
-			     	        debug("currentbuilding set:"+currentbuilding);
-	     	        	}
-					}
-					else if (cmd.equals("mapClick"))
-					{
-	     	        	// Detta var ett klick på kartan
-
-	     	        	/*int screenX=mouseX/xSize;
-	     	        	int screenY=mouseY/xSize;
-	     	        	int worldX=translateScreenToWorldX(avatar, screenX);
-	     	        	int worldY=translateScreenToWorldY(avatar, screenY);*/
-						
-						final int worldX=wr.readInt();
-						final int worldY=wr.readInt();
-						
-		     	        debug("mapClick:"+worldX+" "+worldY);
-
-						try
-						{
-							w.lockWrite();
-		     	        
-		     	        
-		     	        	System.out.println("BUILDHERE");
-		     	        	if (currentbuilding == 0)
-		     	        	{
-		     	        		// Klienten vill ta bort något
-		     	        		System.out.println("BUILDREMOVE ");
-		     	        		int t = getCurrentRoom().getTile(worldX, worldY);
-		     	        		if (t != -1)
-		     	        		{
-		     	        			getCurrentRoom().changeTile(worldX, worldY, 0);	
-		     	        			avatar.fill_mineral +=  CityPvpBlock.loot_mineral(t);
-		     	        			avatar.fill_stone +=  CityPvpBlock.loot_stone(t);
-		     	        			avatar.fill_wood +=  CityPvpBlock.loot_wood(t);
-		     	        		}
-		     	        	}
-			     	        else
-		     	        	{
-			     	        	// Klienten vill lägga till något
-		     	        		System.out.println("BUILD");
-		     	        		if (
-		     	        				CityPvpBlock.cost_mineral(currentbuilding) <= avatar.fill_mineral 			 &&
-		     	        				CityPvpBlock.cost_wood(currentbuilding) <= avatar.fill_wood 					 && 
-		     	        				CityPvpBlock.cost_stone(currentbuilding) <= avatar.fill_stone					 )
-		     	        				  
-		     	        		{
-		     	        			System.out.println("BUILDITTT");
-		     	        			getCurrentRoom().changeTile(worldX, worldY, currentbuilding);
-		     	        			avatar.fill_mineral -= CityPvpBlock.cost_mineral(currentbuilding);
-		     	        			avatar.fill_wood    -= CityPvpBlock.cost_wood(currentbuilding);
-		     	        			avatar.fill_stone   -= CityPvpBlock.cost_stone(currentbuilding) ;
-				     	        	avatar.setUpdateCounter();
-		     	        		}
-		     	        		else
-		     	        		{
-		     	        			debug("Client does not have enough resources");
-				     	        	avatar.postMessage("not enough resources");
-		     	        		}
-		     	        	}
-	     	        		
-						}
-						finally
-						{
-							w.unlockWrite();
-						}
-	     	        	
-	     	        	//getCurrentRoom().changeTile(worldX, worldY, currentbuilding);
-						
-
-					}
-					else if (cmd.equals("textMsg"))
-					{
-						debug("reply from client '"+player.getName()+"' "+cmd);
-						final String txtMsg=wr.readString();
-						String line=WordReader.removeQuotes(txtMsg);
-						WordReader wr2=new WordReader(line);
-						String cmd2=wr2.readWord();
-						if (doCommand(cmd2, wr2)==false)
-						{
-							unknownCommand(cmd2);
-						}
-					}
-					else  if (cmd.equals("cancel"))
-					{
-						debug("reply from client '"+player.getName()+"' "+cmd);
 						break;
-					}
-					else
-					{
-						debug("reply from client '"+player.getName()+"' "+cmd);
-						stc.error("unknown command " + cmd);
+					
+					case 'i':
+						if (cmd.equals("inventoryClick"))
+						{
+							final String s=wr.readString();
+							final int i=Integer.parseInt(s);
+							
+		     	        	CityPvpEntity obj = (CityPvpEntity) avatar.getObjFromIndex(i);
+		     	        	if (obj !=null)
+		     	        	{
+			     	        	currentbuilding = obj.itemtype;
+				     	        notify(-1,-2);
+				     	        debug("currentbuilding set:"+currentbuilding);
+		     	        	}
+						}
+						else
+						{
+							unknownCommand(cmd);
+						}
 						break;
-					}			
+					case 'm':
+						if (cmd.equals("mirrorAck")) // TODO: This shall be in class MirrorServer
+						{
+							updateSequenceNumberReceived=wr.readInt();
+						}
+						else if (cmd.equals("mapClick"))
+						{
+		     	        	// Detta var ett klick på kartan
+
+		     	        	/*int screenX=mouseX/xSize;
+		     	        	int screenY=mouseY/xSize;
+		     	        	int worldX=translateScreenToWorldX(avatar, screenX);
+		     	        	int worldY=translateScreenToWorldY(avatar, screenY);*/
+							
+							final int worldX=wr.readInt();
+							final int worldY=wr.readInt();
+							
+			     	        debug("mapClick:"+worldX+" "+worldY);
+
+							try
+							{
+								w.lockWrite();
+			     	        
+			     	        
+			     	        	System.out.println("BUILDHERE");
+			     	        	if (currentbuilding == 0)
+			     	        	{
+			     	        		// Klienten vill ta bort något
+			     	        		System.out.println("BUILDREMOVE ");
+			     	        		int t = getCurrentRoom().getTile(worldX, worldY);
+			     	        		if (t != -1)
+			     	        		{
+			     	        			getCurrentRoom().changeTile(worldX, worldY, 0);	
+			     	        			avatar.fill_mineral +=  CityPvpBlock.loot_mineral(t);
+			     	        			avatar.fill_stone +=  CityPvpBlock.loot_stone(t);
+			     	        			avatar.fill_wood +=  CityPvpBlock.loot_wood(t);
+			     	        		}
+			     	        	}
+				     	        else
+			     	        	{
+				     	        	// Klienten vill lägga till något
+			     	        		System.out.println("BUILD");
+			     	        		if (
+			     	        				CityPvpBlock.cost_mineral(currentbuilding) <= avatar.fill_mineral 			 &&
+			     	        				CityPvpBlock.cost_wood(currentbuilding) <= avatar.fill_wood 					 && 
+			     	        				CityPvpBlock.cost_stone(currentbuilding) <= avatar.fill_stone					 )
+			     	        				  
+			     	        		{
+			     	        			System.out.println("BUILDITTT");
+			     	        			getCurrentRoom().changeTile(worldX, worldY, currentbuilding);
+			     	        			avatar.fill_mineral -= CityPvpBlock.cost_mineral(currentbuilding);
+			     	        			avatar.fill_wood    -= CityPvpBlock.cost_wood(currentbuilding);
+			     	        			avatar.fill_stone   -= CityPvpBlock.cost_stone(currentbuilding) ;
+					     	        	avatar.setUpdateCounter();
+			     	        		}
+			     	        		else
+			     	        		{
+			     	        			debug("Client does not have enough resources");
+					     	        	avatar.postMessage("not enough resources");
+			     	        		}
+			     	        	}
+		     	        		
+							}
+							finally
+							{
+								w.unlockWrite();
+							}
+		     	        	
+		     	        	//getCurrentRoom().changeTile(worldX, worldY, currentbuilding);
+							
+							
+						}
+						else
+						{
+							unknownCommand(cmd);
+						}
+						break;
+					case 't':						
+						if (cmd.equals("textMsg"))
+						{
+							debug("reply from client '"+player.getName()+"' "+cmd);
+							final String txtMsg=wr.readString();
+							String line=WordReader.removeQuotes(txtMsg);
+							WordReader wr2=new WordReader(line);
+							String cmd2=wr2.readWord();
+							if (doCommand(cmd2, wr2)==false)
+							{
+								unknownCommand(cmd2);
+							}
+						}
+						else
+						{
+							unknownCommand(cmd);
+						}
+						break;
+						
+					case 'c':
+						if (cmd.equals("cancel"))
+						{
+							debug("reply from client '"+player.getName()+"' "+cmd);
+							stc.close(); // TODO: should keep connection and instead return to menu.
+							//throw new InterruptedException("cancel from client");							
+						}
+						else
+						{
+							unknownCommand(cmd);
+						}
+						break;
+
+					default:
+						unknownCommand(cmd);
+						break;
+							
+					}
+					
 
 	  			} catch (InterruptedException e) {
 	  				// This was just a timeout. But if we have many in a row we disconnect the client.

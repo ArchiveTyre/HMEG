@@ -107,8 +107,8 @@ public class FileServer implements WebFileServer
 
 	public WebFileData getFileData(String fileName)
 	{
-		WebFileData fileData=null;
-
+		WebFileData wfd=null;
+		
 		if (dataBase!=null)
 		{
 			final int len=fileName.length();
@@ -125,7 +125,7 @@ public class FileServer implements WebFileServer
 					// http://stackoverflow.com/questions/3211156/how-to-convert-image-to-byte-array-in-java
 				
 					CityPvpRoom cpr=(CityPvpRoom)o;
-					fileData = cpr.getFile(config);
+					wfd = cpr.getFile(config);
 		    	}
 
 			}
@@ -133,7 +133,7 @@ public class FileServer implements WebFileServer
 		
 		
 		
-	    return fileData;		
+	    return wfd;		
 	}
 
 }
