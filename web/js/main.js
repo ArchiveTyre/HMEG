@@ -22,7 +22,7 @@ var wsUri;
 
 
 // Our init function, the first of our functions to be called
-function init()
+function mainInit()
 {
 	docOutput = document.getElementById("divOutput");
 
@@ -41,7 +41,7 @@ function init()
 
 
 // This registers our init function so system will call it when page is loaded.
-window.addEventListener("load", init, false);
+window.addEventListener("load", mainInit, false);
 
 
 

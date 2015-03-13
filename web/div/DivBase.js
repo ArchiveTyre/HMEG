@@ -47,7 +47,8 @@ DivBase.prototype.drag=function(mouseDownPos, mouseUpPos)
 }
 
 
-// This registers the code that will handle various events
+// This registers the code that will handle various events.
+// TODO: Perhaps startDiv would be a better name.
 DivBase.prototype.addEventListenersDiv=function(canvasName)
 {
 	var canvas = document.getElementById(canvasName);

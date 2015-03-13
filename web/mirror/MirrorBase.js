@@ -96,6 +96,7 @@ MirrorBase.prototype.addChild=function(cType, arg)
 	return n;
 }
 
+/*
 MirrorBase.prototype.getNChildObjects=function()
 {
 	var n=0;
@@ -110,6 +111,26 @@ MirrorBase.prototype.getNChildObjects=function()
 				n++;
 			}
 			i++;
+		}
+	}
+	return n;
+}
+*/
+MirrorBase.prototype.getNChildObjects=function()
+{
+	var n=0;
+	if (this.children!=null)
+	{
+		for(i in this.children)
+		{
+			// This is just for debugging, can be removed later
+			var c = this.children[i];
+			if (c.parent != this)
+			{
+				console.log("database is corrupt, this.id=~"+this.id+" c.id=~"+c.id);
+			}
+			
+			n++;
 		}
 	}
 	return n;
@@ -217,7 +238,17 @@ MirrorBase.prototype.updateSelf=function(newParentId, empType, arg)
 	var newParent=this.mirrorDb.byId[newParentId];
 
 	// Only need to unlink and link if object shall change parent
-	if (this.parent.id!=newParentId)
+	if (this.parent==null)
+	{
+		this.readSelf(arg);
+
+		if (newParent!=null)
+		{
+			console.log("updateSelf: old parent is null but new is not, id=~"+this.id);
+			this.linkSelf(newParent, this.index);
+		}
+	}
+	else if (this.parent.id!=newParentId)
 	{
 		this.unlinkSelfFromParent();
 
@@ -229,7 +260,7 @@ MirrorBase.prototype.updateSelf=function(newParentId, empType, arg)
 		}
 		else
 		{
-			console.log("updateSelf: new parent is null "+this.id);
+			console.log("updateSelf: new parent is null, id=~"+this.id);
 		}
 	}
 	else
@@ -288,13 +319,23 @@ MirrorBase.prototype.findSubObjectByName=function(objName)
 
 MirrorBase.prototype.debugDump=function(prefix)
 {
-	console.log(prefix+"index="+this.index+", objName="+this.objName+", id="+this.id);
+	if (typeof prefix === 'undefined')
+	{
+		prefix = "";
+	}
+	
+	console.log(prefix+"index="+this.index+", objName="+this.objName+", id=~"+this.id);
 	
 	if (this.children!=null)
 	{
 		for (x in this.children) 
 		{
-			this.children[x].debugDump(prefix+" ");
+			var c = this.children[x];
+			if (c.parent != this)
+			{
+				console.log("database is corrupt, this.id=~"+this.id+" c.id=~"+c.id);
+			}
+			c.debugDump(prefix+"  ");
 		}
 	}
 }

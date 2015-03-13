@@ -637,7 +637,8 @@ public class Main {
 		System.out.println("-s <path>   : game save directory");
 		System.out.println("-w          : if set launch a web browser");
 		System.out.println("");
-		System.out.println("Example:");
+		System.out.println("Examples:");
+		System.out.println("-p 8080 -d ../../web -s ../../saved_games -w");
 		System.out.println("./server.jar -p 8080 -d /home/henrik/git/RoboticsSandBox/web -s /home/henrik/saved_games -w");  	
 	}
 	

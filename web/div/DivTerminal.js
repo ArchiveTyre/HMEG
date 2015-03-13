@@ -13,7 +13,7 @@ function DivTerminal(parentWin)
 	DivBase.call(this, parentWin); // call super constructor
 	this.count=null;
 	this.text='';
-	this.element=null;
+	this.textElement=null;
 	
 	this.changeConter=0;
 	this.previousChangeConter=0;
@@ -52,53 +52,16 @@ DivTerminal.prototype.defineDiv=function(divSize)
 
 DivTerminal.prototype.addEventListenersDiv=function()
 {
-	this.element = document.getElementById("consoleArea");
+	this.textElement = document.getElementById("consoleArea");
 
-	this.element.value+=this.text;
-
-/*	if (rootDiv.empDb!=null)
-	{
-		var cl=rootDiv.empDb.getEmpireWorld().getEmpireStatesList().children;
-		var n=cl[rootDiv.mapNation];	
-		var r=n.eRoundBuffer;
-
-		if (n!=null)
-		{
-	
-			if (this.count==null)
-			{
-				this.count=r.head;
-			}
-
-			// Add latest messages also to console text area
-			// Is this usefull? Perhaps we should keep messages only in the message text area
-			var i=0; // this variable is just to avoid eternal loop if something is wrong 
-			while((this.count!=r.tail) && (i<r.maxObjects)) 
-			{
-				if (this.count in r.children)
-				{
-					var c = r.children[this.count];
-					var str= c.objName+": "+c.order;
-					this.textBoxAppend(str);
-				}
-		
-				this.count++;
-				if (this.count>=r.maxObjects*2)
-				{
-					this.count=0;
-				}
-				++i;
-			}
-
-		}
-	}*/
+	this.textElement.value+=this.text;
 }
 
 DivTerminal.prototype.drawDiv=function()
 {
     if (this.previousChangeConter!=this.changeConter)
     {
-		var e = this.element;
+		var e = this.textElement;
 		e.scrollTop = e.scrollHeight;
 		this.previousChangeConter=this.changeConter;
 	}
@@ -112,8 +75,8 @@ DivTerminal.prototype.click=function(mouseUpPos)
 
 DivTerminal.prototype.back=function()
 {
-	this.text=this.element.value+"---\n";
-	this.element=null;
+	this.text=this.textElement.value+"---\n";
+	this.textElement=null;
 	rootDiv.mapSetShowState(0)
 }
 
@@ -125,9 +88,9 @@ DivTerminal.prototype.textBoxAppend=function(msg)
 	{
 		this.text += str;
 	}
-	if (this.element!=null)
+	if (this.textElement!=null)
 	{
-		var e = this.element;
+		var e = this.textElement;
 		e.value+=str;
 		e.scrollTop = e.scrollHeight;
 	}

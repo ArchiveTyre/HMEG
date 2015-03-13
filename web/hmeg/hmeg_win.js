@@ -86,7 +86,7 @@ HmegWin.prototype.defineDiv=function()
 
 }
 
-HmegWin.prototype.redefine=function()
+HmegWin.prototype.defineAndDrawPage=function()
 {
 			this.defineDiv();
 			this.addEventListenersDiv();
@@ -109,14 +109,14 @@ HmegWin.prototype.addEventListenersDiv=function()
 				console.log('keypress: inventory');
 				
 				t.subWin = new HmegWinInventory(t);
-				t.redefine();
+				t.defineAndDrawPage();
 			default:
 				if (event.which<32)
 				{
 					console.log('keypress: return');
 				
 					t.subWin = new HmegMapWin(t);
-					t.redefine();
+					t.defineAndDrawPage();
 
 				}
 				else
@@ -191,7 +191,7 @@ HmegWin.prototype.onMessageArg=function(arg)
 		{
 			//this.hmegDb.debugDump(" ");
 			
-			this.redefine();
+			this.defineAndDrawPage();
 		}
 	}
 	else if (cmd=="empWorldClose")

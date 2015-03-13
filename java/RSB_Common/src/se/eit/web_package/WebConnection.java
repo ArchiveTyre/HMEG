@@ -579,13 +579,13 @@ public class WebConnection implements Runnable //extends Thread
 		wfd.lastModified = path.toFile().lastModified();
 
 		// Special for this file. 
-		if (path.toFile().getName().equals("ChatClient.js"))
+		if (path.toFile().getName().equals("set_server_url.js"))
 		{
-			// Special treatment for this file. This should be done via the WebFileServer, so that WebServer can be generic.
+			// Special treatment for this file. TODO: This should be done via the WebFileServer, so that WebServer can be generic.
 			String msg=null;
 					
 			msg="var wsUri = \"ws://"+hs.host+"/\";\r\n"+msg;					
-			msg += readFile(path.toFile());
+			//msg += readFile(path.toFile());
 			wfd.data=msg.getBytes();
 		}
 		else
@@ -594,6 +594,17 @@ public class WebConnection implements Runnable //extends Thread
 			wfd.data = readBinFile(path);
 		}
     	return sendWebFile(filename, wfd);
+	}
+	
+	public int sendSpecialFile(String filename)
+	{
+		String msg=null;
+				
+		WebFileData wfd=new WebFileData();
+		wfd.lastModified = System.currentTimeMillis();			
+		msg="var wsUri = \"ws://"+hs.host+"/\";\r\n"+msg;					
+		wfd.data=msg.getBytes();
+		return sendWebFile(filename, wfd);
 	}
 	
 	public int loadAndSendFromFileSystem(String filename)
@@ -654,8 +665,16 @@ public class WebConnection implements Runnable //extends Thread
 	    }
 	    else
 	    {
-  	    	debug("not found '"+filename+"' '"+nameAndPath+"'"); 
-  	    	return reply("404 Not Found","404 Not Found", false);
+			if (path.toFile().getName().equals("set_server_url.js"))
+			{
+				// Special treatment for this file. TODO: This should be done via the WebFileServer, so that WebServer can be generic. Problem is: that code don't know the host name/ip.
+				return sendSpecialFile(filename);
+			}
+		    else
+		    {
+	  	    	debug("not found '"+filename+"' '"+nameAndPath+"'"); 
+	  	    	return reply("404 Not Found","404 Not Found", false);
+		    }
 	    }
 	}
 	

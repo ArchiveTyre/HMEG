@@ -47,15 +47,13 @@ function onError(evt)
 // It receives commands from the server program.
 function onMessage(evt)
 {
-	//str=getAsciiGraphPartOnly(evt.data);
 	var str=evt.data;
-	//var arg=str.split(' ');
 	var arg=hlibSplitString(str);
 	var i=0;
 	var cmd=arg[0];
 	var reply='';
 
-	console.log("onMessage: " + evt.data); 
+	//console.log("onMessage: " + evt.data); 
 
 	/*console.log('<span style="color: blue;">arg.length: "' + arg.length +'"</span>');
 	for (i=0; i<arg.length; i++)

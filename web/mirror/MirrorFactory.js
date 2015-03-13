@@ -54,7 +54,7 @@ function MirrorFactory(world, parent, cType, arg)
 	{
 		return new EmpWorld(world, parent, cType, arg);
 	}
-	else if (cType == 'RsbLong')
+	else if ((cType == 'RsbLong') || (cType == 'EmpireMoney'))
 	{
 		return new MirrorLong(world, parent, arg);
 	}
@@ -86,9 +86,48 @@ function MirrorFactory(world, parent, cType, arg)
 	{
 		return new MirrorRoundBuffer(world, parent, arg);
 	}
+	/*
+	else if (cType == "RoboGameRoom")
+	{
+		return new RoboGameRoom(world, parent, arg);
+	}
+	else if (cType == "RoboGameBlockRoom")
+	{
+		return RoboGameBlockRoom(world, parent, arg);
+	}
+	else if (cType == "RoboGameSubSphere")
+	{
+		return RoboGameSubSphere(world, parent, arg);
+	}
+	else if (cType == "RoboGameSphere")
+	{
+		return RoboGameSphere(world, parent, arg);
+	}
+	else if (cType == "RoboGameMassObj")
+	{
+		return RoboGameMassObj(world, parent, arg);
+	}
+	else if (cType == "RoboGameSphereWithMass")
+	{
+		return RoboGameSphereWithMass(world, parent, arg);
+	}
+	else if (cType == "RoboGameAvatar")
+	{
+		return RoboGameAvatar(world, parent, arg);
+	}
+	else if (cType == "RoboGameWorldRoot")
+	{
+		return RoboGameWorldRoot(world, parent, arg);
+	}
+	else if (cType == "RoboGameWorld")
+	{
+		return RoboGameWorld(world, parent, arg);
+	}
+	*/
 	
 	
-	console.log("unknown cType " + cType+" "+arg);
+	//console.log("unknown cType " + cType+" "+arg);
+	console.log("unknown cType " + cType);
 
 
 	return null;
