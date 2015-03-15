@@ -1,15 +1,15 @@
 package se.eit.citypvp_package;
 
-import java.awt.Graphics;
+//import java.awt.Graphics;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
+//import java.io.ByteArrayOutputStream;
+//import java.io.File;
+//import java.io.IOException;
 
-import javax.imageio.ImageIO;
+//import javax.imageio.ImageIO;
 
 import se.eit.db_package.*;
-import se.eit.rsb_srv_main_pkg.GlobalConfig;
+//import se.eit.rsb_srv_main_pkg.GlobalConfig;
 import se.eit.web_package.*;
 
 
@@ -238,7 +238,7 @@ public class CityPvpRoom extends CityPvpEntity{
 	}
 	
 	
-	public BufferedImage remakeImage(GlobalConfig config)
+	/*public BufferedImage remakeImage(GlobalConfig config)
 	{
 		final int imageSizeX=xSectors*gridSizeX;
 		final int imageSizeY=ySectors*gridSizeY;
@@ -259,9 +259,9 @@ public class CityPvpRoom extends CityPvpEntity{
 					final int blockId=map[x][y]; 
 					if (blockId!=0)
 					{
-						String blockImageName=CityPvpBlock.getBlockTexture(blockId);
-						BufferedImage blockImage=null;
-						File file=null;
+						//String blockImageName=CityPvpBlock.getBlockTexture(blockId);
+						//BufferedImage blockImage=null;
+						//File file=null;
 						try
 						{
 							final String filename=config.httpRootDir+"/"+blockImageName+".png";
@@ -326,13 +326,13 @@ public class CityPvpRoom extends CityPvpEntity{
 			}			
 			
 		}
-		*/
+		
 		
 
 		
 		return image;
 	}
-    
+    */
 	public String getImageName()
 	{
 		//final String n="tmp"+this.getIndexPath("/");
@@ -341,14 +341,14 @@ public class CityPvpRoom extends CityPvpEntity{
 		return n;
 	}
 	
-	public String prepareImageAndGetName(GlobalConfig config)
+	/*public String prepareImageAndGetName(GlobalConfig config)
 	{
 		getImage(config);
 		return getImageName();
 	}
+	*(
 	
-	
-	public BufferedImage getImage(GlobalConfig config)
+	/*public BufferedImage getImage(GlobalConfig config)
 	{
 		if (image==null)
 		{
@@ -357,8 +357,8 @@ public class CityPvpRoom extends CityPvpEntity{
 		}
 		return image;
 	}
-	
-	public WebFileData getFile(GlobalConfig config)
+	*(
+	/*public WebFileData getFile(GlobalConfig config)
 	{		
 		if (image==null)
 		{
@@ -389,7 +389,7 @@ public class CityPvpRoom extends CityPvpEntity{
 		}
 		return fileData;
 	}
-		
+	*/	
 	
 	public boolean isControlPanel(int x, int y)
 	{

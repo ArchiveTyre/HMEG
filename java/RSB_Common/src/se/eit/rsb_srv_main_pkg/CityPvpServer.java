@@ -630,7 +630,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 							}
 							else
 							{
-								stc.writeLine("AddImg "+CityPvpBlock.getBlockTexture(cr.map[x][y])+" "+sx*xSize+" "+sy*ySize+" "+xSize+" "+ ySize);
+						//		stc.writeLine("AddImg "+CityPvpBlock.getBlockTexture(cr.map[x][y])+" "+sx*xSize+" "+sy*ySize+" "+xSize+" "+ ySize);
 							}
 						}
 					}
@@ -698,8 +698,8 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 							}
 							
 							{
-							final String imageName=cpr.prepareImageAndGetName(config);
-							stc.writeLine("AddImg "+imageName + " "+px+" "+py+" "+xSize*eXSize+" "+ ySize*eYSize);
+						//	final String imageName=cpr.prepareImageAndGetName(config);
+						//	stc.writeLine("AddImg "+imageName + " "+px+" "+py+" "+xSize*eXSize+" "+ ySize*eYSize);
 							}
 						}
 						
@@ -753,7 +753,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 		{
 			if (list[i] instanceof CityPvpEntity)
 			{
-				CityPvpEntity e = (CityPvpEntity)list[i];
+				//CityPvpEntity e = (CityPvpEntity)list[i];
 
 				
 				
@@ -767,8 +767,8 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 
 				//	stc.writeLine("AddImg ship "+e.Oldx*xSize+" "+e.Oldy*ySize+" "+xSize+" "+ ySize);
 				
-				String n = CityPvpBlock.getBlockTexture(e.itemtype);
-				stc.writeLine("AddImg "+n+" "+(x+2)+" "+(y+2)+" "+xSize+" "+ ySize+" "+e.stack);
+				//String n = CityPvpBlock.getBlockTexture(e.itemtype);
+				//stc.writeLine("AddImg "+n+" "+(x+2)+" "+(y+2)+" "+xSize+" "+ ySize+" "+e.stack);
 				
 				//stc.writeLine("FillText "+e.stack+" "+(x+2)+" "+(y+2));
 		

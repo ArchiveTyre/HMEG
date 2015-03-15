@@ -124,8 +124,8 @@ public class FileServer implements WebFileServer
 		    	{
 					// http://stackoverflow.com/questions/3211156/how-to-convert-image-to-byte-array-in-java
 				
-					CityPvpRoom cpr=(CityPvpRoom)o;
-					wfd = cpr.getFile(config);
+					//CityPvpRoom cpr=(CityPvpRoom)o;
+					//wfd = cpr.getFile(config);
 		    	}
 
 			}

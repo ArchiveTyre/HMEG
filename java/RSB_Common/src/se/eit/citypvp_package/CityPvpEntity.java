@@ -11,10 +11,10 @@ public class CityPvpEntity extends GameBase {
 	public int health = 20;
 	public int Oldx = 0;
 	public int Oldy = 0;
-	public int mass = 1;
-	// entity i entity (item) comer att display'a 
+	public int mass = 1;	 
 	public int speedrecoil = 250;
-	public int state = 0;
+	// Entity i entity (item) comer att display'a
+	public int state = 0; //Also known as entity id
 	public int stack = 0;
 	public int itemtype = 0;
 	public int fill_wood = 0;
@@ -88,6 +88,11 @@ public class CityPvpEntity extends GameBase {
 			{
 				return;
 			}
+			if (mass < -34 )
+			{
+				move(0,1, 1);
+				a-=1000;
+			}
 			if (mass < 0)
 			{
 				return;
@@ -101,6 +106,7 @@ public class CityPvpEntity extends GameBase {
 		}
 	}
 	
+
 
 	public void doMoveAnimation(DbRoot ro)
 	{	
@@ -118,7 +124,30 @@ public class CityPvpEntity extends GameBase {
 		}
 	}
 	
-	
+	public boolean checkIfBlocks(int newX, int newY, CityPvpRoom cpr)
+	{
+		
+		// 2 = ladder    walkable block [trancperant]
+		if (CityPvpBlock.isWalkable(cpr.map[newX][newY])==true)
+		{ 
+			if (cpr.map[newX][newY] == CityPvpBlock.doorOut)
+			{
+				
+				CityPvpRoom cprRoom = (CityPvpRoom) cpr;
+				DbContainer pp=this.getParent().getParent();
+				debug("move from "+getParent()+ "to "+pp.getId());	
+				this.moveToRoomThreadSafe(pp);
+				x = x - cprRoom.x/cprRoom.xSectors;
+				y = y - cprRoom.y/cprRoom.ySectors;
+				System.out.println(x +" "+ y);
+				return true;
+				
+			}
+			
+			return true;
+		}
+		return false;
+	}
 	public void move(int dx, int dy, int mode)
 	{
 		if (mode == 0)
@@ -158,15 +187,10 @@ public class CityPvpEntity extends GameBase {
 				{
 					return;
 				}
-				// 2 = ladder    walkable block [trancperant]
-				if (/*cpr.map[newX][newY] == 0 || (cpr.map[newX][newY]==2)*/CityPvpBlock.isWalkable(cpr.map[newX][newY])==true)
+					// check if tile is an good place to move to;
+				if (checkIfBlocks(newX, newY, cpr)==true)
 				{ 
-					if (cpr.map[newX][newY] == CityPvpBlock.doorOut)
-					{
-						DbContainer pp=this.getParent().getParent();
-						debug("move from "+getParent()+ "to "+pp.getId());
-						this.moveToRoomThreadSafe(pp);
-					}
+					
 					
 					// Here we check if we bump into other entities
 					DbBase list[] = cpr.getListOfSubObjectsThreadSafe();
@@ -183,36 +207,47 @@ public class CityPvpEntity extends GameBase {
 							{
 								CityPvpRoom e=(CityPvpRoom)cpe;
 								eXSize=e.outerX;
+								eYSize=e.outerY;
 							}
 							
-		                    // Check for collision with another entity
-							if ( ((newX>=cpe.x) && (newX <(cpe.x+eXSize))) && ((newY>=cpe.y) && (newY<(cpe.y+eYSize))))
+						
 							{
-								if (cpe.itemtype!=6)
+			                    // Check for collision with another entity
+								if ( ((newX>=cpe.x) && (newX <(cpe.x+eXSize))) && ((newY>=cpe.y) && (newY<(cpe.y+eYSize))))
 								{
-									// Move not possible, we can not move onto this entity
-									return;
-								}
-								else
-								{
-									if (cpe != this)
+									   // Check if room
+									if (cpe.itemtype!=CityPvpBlock.doorIn)
 									{
-									// This entity was a room. We can move into it.
-									debug("moveToRoom "+cpe.getId());
-									this.moveToRoomThreadSafe(cpe);
-									//this.moveToRoom(cpe);
-									((NotificationSender)getDbRoot()).notifySubscribers(-2);
-									x = 1;
-									y = 1;		
-									return;
+										
+										// Move not possible, we can not move into or beside this entity
+										return;
 									}
 									else
 									{
-										debug("moveToRoom was not possible beacouse was its self "+cpe.getId());
-									
+										
+										if (cpe != this)
+										{
+										// This entity was a room. We can move into it.
+										debug("moveToRoom "+cpe.getId());
+										this.moveToRoomThreadSafe(cpe);
+										//this.moveToRoom(cpe);
+										((NotificationSender)getDbRoot()).notifySubscribers(-2);
+										if (cpe instanceof CityPvpRoom)
+										{
+										CityPvpRoom cpeRoom = (CityPvpRoom)cpe;
+										x = (newX-cpe.x)*(cpeRoom.xSectors/cpeRoom.outerX);
+										y = (newY-cpe.y)*(cpeRoom.ySectors/cpeRoom.outerY);	
+										}
+										return;
+										}
+										else
+										{
+											debug("moveToRoom was not possible beacouse was its self "+cpe.getId());
+										
+										}
 									}
+									
 								}
-								
 							}
 						}
 					}
@@ -337,7 +372,7 @@ public class CityPvpEntity extends GameBase {
 	
 	
 //	en natt natt natt min båt jag styrde
-	public void giveItem(int itemtype , int count)
+	public boolean giveItem(int itemtype , int count)
 	{
 		debugWriteLock();
 		
@@ -346,17 +381,33 @@ public class CityPvpEntity extends GameBase {
 		
 		if (cpe!=null)
 		{
-			cpe.stack+=1;
-			cpe.setUpdateCounter();
+			// 0 <= -9
+			if (cpe.stack<=count)
+			{
+				System.out.println("couldent remove items");
+				return false;
+			}
+			else
+			{
+				cpe.stack+=count;
+				cpe.setUpdateCounter();
+				return true;
+			}
+			
 		}
 		else
 		{	
 			// Create a new object
+			if (count <= 0)
+			{
+				System.out.println("err");
+				return false;
+			}
 			cpe = new CityPvpEntity ();
 			cpe.setName("i"+itemtype); // All objects shall have some name in RSB
 			cpe.itemtype = itemtype;
 			cpe.stack = count;
-			//cpe.state = ite; // temporary test for new JS client.
+			
 			cpe.linkSelf(this);			
 	
 			cpe.setUpdateCounter(); // should not be needed here.
@@ -369,6 +420,7 @@ public class CityPvpEntity extends GameBase {
 				cpr.x = cpe.getIndex()%cpr.xSectors;
 				cpr.y = cpe.getIndex()/cpr.xSectors;
 			}
+			return true;
 		}
 	}
 }

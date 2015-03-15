@@ -12,8 +12,9 @@ public class CityPvpAvatar extends CityPvpEntity {
 	{
 		super(parent, name);	
 
-	    // TODO: vad mer behövs här?	
-		itemtype = 13;
+	    // TODO: vad mer behövs här?
+		// Structur.
+		itemtype = CityPvpBlock.avatarFigure;
 		
 	}
 
