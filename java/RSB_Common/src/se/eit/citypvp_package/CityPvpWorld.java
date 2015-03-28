@@ -99,7 +99,7 @@ public class CityPvpWorld extends WorldBase {
 			secondRoom.map[0][y] = 1;
 			secondRoom.map[secondRoom.xSectors-1][y] = 1;
 		}
-		
+		secondRoom.map[0][0]=0;
 		
 		
 	//	CityPvpRoom thirdRoom = new CityPvpRoom(spawnRoom, "thirdRoom");

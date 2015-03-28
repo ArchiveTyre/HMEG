@@ -24,8 +24,8 @@ public class CityPvpRoom extends CityPvpEntity{
 	public int ySectors=16;
 	
 	// Outer size of room
-	public int outerX=2;
-	public int outerY=1;
+	public int outerX=2; // TODO: Rename to outerSizeX
+	public int outerY=1; // TODO: Rename to outerSizeY
 	
 	
 	

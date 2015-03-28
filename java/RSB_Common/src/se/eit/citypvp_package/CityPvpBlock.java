@@ -16,14 +16,14 @@ static int controlPanel = 11;
 static int log = 12;
 static int avatarFigure = 13;// avatar figure. #ENTITY#
 static int ballon = 14;
-static public boolean recistance(int id, int force)
+static public int recistance(int id, int force)
 {
 	if (force >= 3 && id == 3)
 	{
-		return true;
+		return 1;
 	}
 
-	return false;
+	return 0;
 }	
 	
 	static public boolean isWalkable(int id)
