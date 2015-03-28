@@ -121,7 +121,10 @@ HmegMapWin.prototype.showWorldMapSectors=function(context, hmegRoom)
 				//context.fillRect(xy.x, xy.y, this.sectorWidth, this.sectorHeight);
 
 				var argu = 0;
-				var block = hmegRoom.img[r+"_"+argu];
+				var rotate = 0;
+				var id = r & 0xFF
+				console.log(id+" Derp");
+				var block = hmegRoom.img[id+"_"+rotate+"_"+argu];
 				if (block === undefined)
 				{
 					context.fillStyle="#4040A0";				

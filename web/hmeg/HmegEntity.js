@@ -24,19 +24,20 @@ HmegEntity.prototype.initSelf=function()
 
 
     // Entities & Blocks
-	this.img["0_0"] = new DivImg("air");
-	this.img["1_0"] = new DivImg("dirt");
-	this.img["2_0"] = new DivImg("ladder");
-	this.img["3_0"] = new DivImg("grass");
-	this.img["7_0"] = new DivImg("door");
-	this.img["8_0"] = new DivImg("wood");
-	this.img["9_0"] = new DivImg("woodstairright");
-	this.img["11_0"] = new DivImg("controlpanel");
-	this.img["13_0"] = new DivImg("avatar_0");
-	this.img["13_1"] = new DivImg("avatar_1");
-	this.img["13_2"] = new DivImg("avatar_2");
-	this.img["13_3"] = new DivImg("avatar_3");
-	this.img["14_0"] = new DivImg("ballon")
+    //     id_rotate_arg
+	this.img["0_0_0"] = new DivImg("air");
+	this.img["1_0_0"] = new DivImg("dirt");
+	this.img["2_0_0"] = new DivImg("ladder");
+	this.img["3_0_0"] = new DivImg("grass");
+	this.img["7_0_0"] = new DivImg("door");
+	this.img["8_0_0"] = new DivImg("wood");
+	this.img["9_0_0"] = new DivImg("woodstairright");
+	this.img["11_0_0"] = new DivImg("controlpanel");
+	this.img["13_0_0"] = new DivImg("avatar_0");
+	this.img["13_1_0"] = new DivImg("avatar_1");
+	this.img["13_2_0"] = new DivImg("avatar_2");
+	this.img["13_3_0"] = new DivImg("avatar_3");
+	this.img["14_0_0"] = new DivImg("ballon")
 }
 
 
@@ -75,7 +76,8 @@ HmegEntity.prototype.selfToString=function()
 
 HmegEntity.prototype.showSelfContextXY=function(context, x, y, width, height)
 {
-	var n=""+this.itemtype+"_"+this.state;
+	var argu = 0;
+	var n=""+this.itemtype+"_"+this.state+"_"+argu;
 	
 	if (n in this.img)
 	{
