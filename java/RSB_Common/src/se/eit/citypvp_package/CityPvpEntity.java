@@ -101,7 +101,7 @@ public class CityPvpEntity extends GameBase {
 			
 			
 			// DO GRAVITY
-			move(0,CityPvpBlock.inBlockGravity(cpr.map[x][y]), 1);
+			move(0,CityPvpBlock.inBlockGravity(cpr.getTile(x, y, 0)), 1);
 			a-=1000;
 			}
 		}
@@ -232,7 +232,7 @@ public class CityPvpEntity extends GameBase {
 	{
 		
 		// 2 = ladder    walkable block [trancperant]
-		if (CityPvpBlock.isWalkable(cpr.map[newX][newY])==true)
+		if (CityPvpBlock.isWalkable(cpr.getTile(newX, newY, 0))==true)
 		{ 
 			if (cpr.map[newX][newY] == CityPvpBlock.doorOut)
 			{
@@ -253,9 +253,9 @@ public class CityPvpEntity extends GameBase {
 		}
 		else
 		{
-			if (CityPvpBlock.recistance(cpr.getTile(newX,newY), force)>=1)
+			if (CityPvpBlock.recistance(cpr.getTile(newX,newY, 0), force)>=1)
 			{
-				cpr.changeTile(newX, newY, force);
+				cpr.changeTile(newX, newY, 0, 0);
 				if (checkIfEmpty(newX, newY, cpr, 0, false))
 				{
 					//return 'nikolajisbest'

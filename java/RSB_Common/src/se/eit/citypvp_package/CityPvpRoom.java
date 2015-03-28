@@ -29,7 +29,7 @@ public class CityPvpRoom extends CityPvpEntity{
 	
 	
 	
-	public int[][] map = new int[xSectors][ySectors];
+	public long [][] map = new long[xSectors][ySectors];
 	
 	public BufferedImage image=null; /*ImageComponent2D*/
 	public WebFileData fileData=null;
@@ -68,7 +68,7 @@ public class CityPvpRoom extends CityPvpEntity{
 		{	
 			for(int y=0;y<ySectors;y++)
 			{
-				map[x][y] = wr.readInt();
+				map[x][y] = wr.readLong();
 			}
 		}
 		image=null;
@@ -87,15 +87,33 @@ public class CityPvpRoom extends CityPvpEntity{
 		{	
 			for(int y=0;y<ySectors;y++)
 			{
-				ww.writeInt(map[x][y]);
+				ww.writeLong(map[x][y]);
 			}
 		}		
 	}
-	public int getTile (int x, int y)
+	public int getTile (int x, int y, int argument)
 	{
 		if ( ((x<xSectors) && (y<ySectors)) && ((x>-1)&&(y>-1)) ) 
         {
-	      return map[x][y];
+	      long a = map[x][y];
+	      int id = (int) (a & 0xFF);
+	      a = a >> 8;
+	      int damage = (int) (a & 0xFFFF);
+	      a = a  >> 16;
+	      int rotate = (int) (a & 0x3);
+	      a = a >> 2;
+	      if (argument == 0)
+	      {
+	    	  return id;
+	      }
+	      else if (argument == 1)
+	      {
+	    	  return damage;
+	      }
+	      else if (argument == 2)
+	      {
+	    	  return rotate;
+	      }
         }
 		return -1;
 	}
@@ -122,11 +140,43 @@ public class CityPvpRoom extends CityPvpEntity{
 	return m ;
 	}
 	
-	public void changeTile(int x, int y, int id)
+	public void changeTile(int x, int y, int argument, int index)
 	{
         if ( ((x<xSectors) && (y<ySectors)) && ((x>-1)&&(y>-1)) ) 
         {
-	       map[x][y] = id;
+	        long a = map[x][y];
+	        
+	        switch(argument)
+	        {
+		        case 0:
+		        {
+		        	final long m = 0xFF;
+		        	a &= ~m;
+		        	a |= (index & m);
+		        }
+		        case 1:
+	        	{
+	        		final long m = 0xFFFF;
+	        		index &= m;
+	        		a &= ~(m<<8);
+	        		a |= index<<8;
+	        	}
+		        case 2:
+		        {
+	        		final long m = 0x3;
+	        		index &= m;
+	        		a &= ~(m<<24);
+	        		a |= index<<24;
+		        }
+	        	default:
+	        		System.out.println("Invalid argument");
+	        		break;
+	        }
+	        
+	        
+	        
+        	map[x][y] = a;
+        
         }
 
         

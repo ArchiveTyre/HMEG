@@ -269,10 +269,10 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 	     	        	{
 	     	        		// Klienten vill ta bort något
 	     	        		System.out.println("BUILDREMOVE ");
-	     	        		int t = getCurrentRoom().getTile(worldX, worldY);
+	     	        	int t = getCurrentRoom().getTile(worldX, worldY, 0);
 	     	        		if (t != -1)
 	     	        		{
-	     	        			getCurrentRoom().changeTile(worldX, worldY, 0);	
+	     	        			//getCurrentRoom().changeTile(worldX, worldY, 0);	
 	     	        			avatar.fill_mineral +=  CityPvpBlock.loot_mineral(t);
 	     	        			avatar.fill_stone +=  CityPvpBlock.loot_stone(t);
 	     	        			avatar.fill_wood +=  CityPvpBlock.loot_wood(t);
@@ -289,7 +289,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 	     	        				  
 	     	        		{
 	     	        			System.out.println("BUILDITTT");
-	     	        			getCurrentRoom().changeTile(worldX, worldY, currentbuilding);
+	     	        			//getCurrentRoom().changeTile(worldX, worldY, currentbuilding);
 	     	        			avatar.fill_mineral -= CityPvpBlock.cost_mineral(currentbuilding);
 	     	        			avatar.fill_wood    -= CityPvpBlock.cost_wood(currentbuilding);
 	     	        			avatar.fill_stone   -= CityPvpBlock.cost_stone(currentbuilding) ;

@@ -61,7 +61,7 @@ public class CityPvpWorld extends WorldBase {
 		
 		// Vi måste skapa ett spawn room här, det ska heta "spawnRoom" för annar hittas det inte ifrån playerJoined.
 		CityPvpRoom spawnRoom = new CityPvpRoom(this, "spawnRoom");
-
+/*
 		spawnRoom.map[3][3] = 1;
 		spawnRoom.map[0][1] = 1;
 		spawnRoom.map[2][3] = 2;
@@ -70,7 +70,15 @@ public class CityPvpWorld extends WorldBase {
 		spawnRoom.map[12][10] = 3;
 		spawnRoom.map[13][10] = 3;
 		spawnRoom.map[14][10] = 3;
-		
+*/		
+		spawnRoom.changeTile(3, 3, 0, 1);
+		spawnRoom.changeTile(0, 1, 0, 1);
+		spawnRoom.changeTile(2, 3, 0, 2);
+		spawnRoom.changeTile(10, 10, 0, 3);
+		spawnRoom.changeTile(11, 10, 0, 3);
+		spawnRoom.changeTile(12, 10, 0, 3);
+		spawnRoom.changeTile(13, 10, 0, 3);
+		spawnRoom.changeTile(14, 10, 0, 3);
 		
 		
 		CityPvpRoom secondRoom = new CityPvpRoom(spawnRoom, "secondRoom");
@@ -80,26 +88,28 @@ public class CityPvpWorld extends WorldBase {
 		secondRoom.outerX=4;
 		secondRoom.outerY=2;
 		
-		secondRoom.itemtype = 6;
-		secondRoom.map[3][3] = 1;
-		secondRoom.map[0][1] = 1;
-		secondRoom.map[2][3] = 2;
-		secondRoom.map[10][10] = 2;
-		secondRoom.map[11][10] = 2;
-		secondRoom.map[12][10] = 2;
-		secondRoom.map[13][10] = 1;
-		secondRoom.map[14][10] = 1;
+		secondRoom.itemtype = CityPvpBlock.doorIn;
+		
+		secondRoom.changeTile(3, 3, 0, 1);
+		secondRoom.changeTile(0, 1, 0, 1);
+		secondRoom.changeTile(2, 3, 0, 2);
+		secondRoom.changeTile(10, 10, 0, 3);
+		secondRoom.changeTile(11, 10, 0, 3);
+		secondRoom.changeTile(12, 10, 0, 3);
+		secondRoom.changeTile(13, 10, 0, 3);
+		secondRoom.changeTile(14, 10, 0, 3);
+		
 		for(int x=0;x<secondRoom.xSectors;x++)
 		{
-			secondRoom.map[x][0] = 1;
-			secondRoom.map[x][secondRoom.ySectors-1] = 1;
+			secondRoom.changeTile(x, 0, 0, 1);
+			secondRoom.changeTile(x, secondRoom.ySectors-1, 0, 1);
 		}
 		for(int y=0;y<secondRoom.ySectors;y++)
 		{
-			secondRoom.map[0][y] = 1;
-			secondRoom.map[secondRoom.xSectors-1][y] = 1;
+			secondRoom.changeTile(0, y, 0, 1);
+			secondRoom.changeTile(secondRoom.xSectors-1, y, 0, 1);
 		}
-		secondRoom.map[0][0]=0;
+		secondRoom.changeTile(0, 0, 0, 0);
 		
 		
 	//	CityPvpRoom thirdRoom = new CityPvpRoom(spawnRoom, "thirdRoom");
