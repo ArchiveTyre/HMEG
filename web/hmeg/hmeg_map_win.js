@@ -120,10 +120,15 @@ HmegMapWin.prototype.showWorldMapSectors=function(context, hmegRoom)
 				//context.fillStyle="#0080F0";				
 				//context.fillRect(xy.x, xy.y, this.sectorWidth, this.sectorHeight);
 
+
+				var id = r & 0xFF;
+				r >>= 8;
+				var damage = r & 0xFFFF;
+				r >>= 16;
+				var rotate = r & 0x3;
+				r >>= 2;
 				var argu = 0;
-				var rotate = 0;
-				var id = r & 0xFF
-				console.log(id+" Derp");
+				console.log(id+" Derp"+ rotate);
 				var block = hmegRoom.img[id+"_"+rotate+"_"+argu];
 				if (block === undefined)
 				{
@@ -135,7 +140,7 @@ HmegMapWin.prototype.showWorldMapSectors=function(context, hmegRoom)
 				{
 					block.showSelfContextXY(context ,xy.x, xy.y, this.sectorWidth, this.sectorHeight);
 				}
-				
+				//TODO Add damage over_layer.
 				
 			}
 			

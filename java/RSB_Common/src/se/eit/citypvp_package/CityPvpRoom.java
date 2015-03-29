@@ -95,6 +95,7 @@ public class CityPvpRoom extends CityPvpEntity{
 	{
 		if ( ((x<xSectors) && (y<ySectors)) && ((x>-1)&&(y>-1)) ) 
         {
+		  // Decomplie Block into small ints
 	      long a = map[x][y];
 	      int id = (int) (a & 0xFF);
 	      a = a >> 8;

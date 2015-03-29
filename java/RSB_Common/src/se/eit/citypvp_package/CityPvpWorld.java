@@ -79,7 +79,15 @@ public class CityPvpWorld extends WorldBase {
 		spawnRoom.changeTile(12, 10, 0, 3);
 		spawnRoom.changeTile(13, 10, 0, 3);
 		spawnRoom.changeTile(14, 10, 0, 3);
-		
+		// Set Rotation
+		spawnRoom.changeTile(3, 3, 2, 0);
+		spawnRoom.changeTile(0, 1, 2, 0);
+		spawnRoom.changeTile(2, 3, 2, 0);
+		spawnRoom.changeTile(10, 10, 2, 0);
+		spawnRoom.changeTile(11, 10, 2, 0);
+		spawnRoom.changeTile(12, 10, 2, 0);
+		spawnRoom.changeTile(13, 10, 2, 0);
+		spawnRoom.changeTile(14, 10, 2, 0);
 		
 		CityPvpRoom secondRoom = new CityPvpRoom(spawnRoom, "secondRoom");
 		
@@ -98,6 +106,17 @@ public class CityPvpWorld extends WorldBase {
 		secondRoom.changeTile(12, 10, 0, 3);
 		secondRoom.changeTile(13, 10, 0, 3);
 		secondRoom.changeTile(14, 10, 0, 3);
+		
+		
+		
+		secondRoom.changeTile(3, 3, 2, 0);
+		secondRoom.changeTile(0, 1, 2, 0);
+		secondRoom.changeTile(2, 3, 2, 0);
+		secondRoom.changeTile(10, 10, 2, 0);
+		secondRoom.changeTile(11, 10, 2, 0);
+		secondRoom.changeTile(12, 10, 2, 0);
+		secondRoom.changeTile(13, 10, 2, 0);
+		secondRoom.changeTile(14, 10, 2, 0);	
 		
 		for(int x=0;x<secondRoom.xSectors;x++)
 		{
