@@ -455,4 +455,73 @@ public class CityPvpRoom extends CityPvpEntity{
 	   return false;
 	}
 	
+	// Translates coordinates within this room to the coordinates of the room that this room is in.
+	public int translateToParentCoordinateX(int beforeX)
+	{	
+		int newX = this.x+beforeX/(this.xSectors/this.outerX);
+
+		CityPvpRoom p = (CityPvpRoom)this.getParent();
+		
+		if (newX<0)
+		{
+			newX=0;
+		}
+		if (newX>=p.xSectors)
+		{
+			newX=p.xSectors-1;
+		}
+		
+		return newX; 
+	}
+
+	public int translateToParentCoordinateY(int beforeY)
+	{
+		int newY = this.y+beforeY/(this.ySectors/this.outerY);
+
+		CityPvpRoom p = (CityPvpRoom)this.getParent();
+		
+		if (newY<0)
+		{
+			newY=0;
+		}
+		if (newY>=p.ySectors)
+		{
+			newY=p.ySectors-1;
+		}
+		
+		return newY;
+	}
+	
+
+	// Translates from the coordinates of the room that this room is in to coordinates of this room.
+	public int translateFromParentCoordinateX(int beforeX)
+	{
+		int newX=(beforeX-this.x) * (this.xSectors/this.outerX);
+		if (newX<0)
+		{
+			newX=0;
+		}
+		if (newX>=this.xSectors)
+		{
+			newX=this.xSectors-1;
+		}
+		return newX;
+		
+	}
+
+	
+	public int translateFromParentCoordinateY(int beforeY)
+	{
+		int newY=(beforeY-this.y) * (this.ySectors/this.outerY);
+		if (newY<0)
+		{
+			newY=0;
+		}
+		if (newY>=this.ySectors)
+		{
+			newY=this.ySectors-1;
+		}
+		return newY;
+	}
+	
 }

@@ -84,6 +84,7 @@ public class CityPvpEntity extends GameBase {
 			CityPvpRoom cpr=(CityPvpRoom)this.getContainingObj();
 			
 			
+			
 			// NONE GRAVITY EFFECT BLOCKS
 			if (cpr.map[x][y]==2)
 			{
@@ -139,7 +140,11 @@ public class CityPvpEntity extends GameBase {
 		return false;
 		*/
 		
+		// TODO: Translate coordinates, but perhaps not here, we need to know if we are exiting or entering (that we don't know here).
+		
 		this.moveToRoomThreadSafe(to);
+		this.x=newX;
+		this.y=newY;
 		this.setUpdateCounter();
 		return true;
 	}
@@ -210,9 +215,10 @@ public class CityPvpEntity extends GameBase {
 												
 												CityPvpRoom cpeRoom = (CityPvpRoom)cpe;
 												
-												int tmpX = (newX-cpe.x)*(cpeRoom.xSectors/cpeRoom.outerX);
-												int tmpY = (newY-cpe.y)*(cpeRoom.ySectors/cpeRoom.outerY);	
-												this.moveToRoom(newX, newY, (CityPvpRoom) cpe, force);
+												int tmpX = cpeRoom.translateFromParentCoordinateX(newX);
+												int tmpY = cpeRoom.translateFromParentCoordinateY(newX);
+												
+												this.moveToRoom(tmpX, tmpY, (CityPvpRoom) cpe, force);
 											}
 											else
 											{
@@ -232,6 +238,9 @@ public class CityPvpEntity extends GameBase {
 		}
 		return false;
 	}
+	
+	
+	
 	public boolean doExit(int newX, int newY, CityPvpRoom cpr)
 	{ 
 		int beforeX = x;
@@ -240,16 +249,19 @@ public class CityPvpEntity extends GameBase {
 		int tmpY = y;
 		CityPvpRoom cprRoom = (CityPvpRoom) cpr;
 		DbContainer pp=this.getParent().getParent();
-		debug("move from ~"+getId()+ " to ~"+pp.getId());	
+		debug("move from ~"+cpr.getId()+ " to ~"+pp.getId());	
 		// Check if after leaving object shall be to left, right, above or under
-		tmpX=cprRoom.x+beforeX/(cprRoom.xSectors/cprRoom.outerX);
-		tmpY=cprRoom.y+beforeY/(cprRoom.ySectors/cprRoom.outerY);
+		//tmpX=cprRoom.x+beforeX/(cprRoom.xSectors/cprRoom.outerX);
+		//tmpY=cprRoom.y+beforeY/(cprRoom.ySectors/cprRoom.outerY);
+		tmpX=cprRoom.translateToParentCoordinateX(beforeX);
+		tmpY=cprRoom.translateToParentCoordinateY(beforeY);
+		
 		
 		// TODO: For now dont check destination.
 		//if(checkIfEmpty(tmpX,tmpY,(CityPvpRoom)pp, force, true)==true)
 		{
 			
-			System.out.println("moving to room");
+			System.out.println("moving to room ~"+pp.getId()+" from ~"+cpr.getId());
 			//y = cprRoom.y;
 			/*
 			this.moveToRoomThreadSafe(pp);
@@ -318,8 +330,16 @@ public class CityPvpEntity extends GameBase {
 			}
 			return false;
 		}
+		
+		
+		// Quick and dirty, if the above code changed room, then don't do checkIfEntities on old room
+		if(cpr!=this.getParent())
+		{
+			return false;	
+		}
+		
 	  
-	   // Check if bumping into other entities
+	   // Check if bumping into other entities				
 	   if (checkIfEntities(newX, newY, cpr, exiting)==true)
 	   {
 		   System.out.println("true");
