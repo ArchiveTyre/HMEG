@@ -124,6 +124,16 @@ public class CityPvpEntity extends GameBase {
 			ro.unlockWrite();
 		}
 	}
+	public boolean moveToRoom(int newX,int newY, CityPvpRoom to, int force)
+	{
+		
+		if (checkIfEmpty(newX, newY, to, force, true)==true)
+		{
+			this.moveToRoomThreadSafe(to);
+			return true;
+		}
+		return false;
+	}
 	public boolean checkIfEntities(int newX, int newY, CityPvpRoom cpr, boolean exiting)
 	{
 		// Here we check if we bump into other entities
@@ -169,14 +179,17 @@ public class CityPvpEntity extends GameBase {
 									
 									// This entity was a room. We can move into it.
 									debug("moveToRoom "+cpe.getId());
-									this.moveToRoomThreadSafe(cpe);
+									//this.moveToRoomThreadSafe(cpe);
 									//this.moveToRoom(cpe);
 									((NotificationSender)getDbRoot()).notifySubscribers(-2);
 									if (cpe instanceof CityPvpRoom)
 									{
+										
 										CityPvpRoom cpeRoom = (CityPvpRoom)cpe;
-										x = (newX-cpe.x)*(cpeRoom.xSectors/cpeRoom.outerX);
-										y = (newY-cpe.y)*(cpeRoom.ySectors/cpeRoom.outerY);	
+										
+										int tmpX = (newX-cpe.x)*(cpeRoom.xSectors/cpeRoom.outerX);
+										int tmpY = (newY-cpe.y)*(cpeRoom.ySectors/cpeRoom.outerY);	
+										this.moveToRoom(newX, newY, (CityPvpRoom) cpe, force);
 									}
 									else
 									{
@@ -216,9 +229,12 @@ public class CityPvpEntity extends GameBase {
 			
 			System.out.println("moving to room");
 			//y = cprRoom.y;
+			/*
 			this.moveToRoomThreadSafe(pp);
 			y = tmpY;
 			x = tmpX;
+			*/
+			this.moveToRoom(tmpX, tmpY, (CityPvpRoom) pp, force);
 			System.out.println("ExitPos "+ x +" "+ y);
 			return true;
 		}
@@ -228,20 +244,27 @@ public class CityPvpEntity extends GameBase {
 			return false;
 		}
 	}
+	
+	// This method checks if there are blocks there.
 	public boolean checkIfBlocks(int newX, int newY, CityPvpRoom cpr)
 	{
 		
 		// 2 = ladder    walkable block [trancperant]
-		if (CityPvpBlock.isWalkable(cpr.getTile(newX, newY, 0))==true)
+		if (CityPvpBlock.isWalkable(cpr.getTile(newX, newY, 0))==false)
 		{ 
-			if (cpr.map[newX][newY] == CityPvpBlock.doorOut)
+			if (cpr.getTile(newX, newY, 0) == CityPvpBlock.doorOut)
 			{
-				doExit(newX, newY, cpr);
+				return doExit(newX, newY, cpr);
 			}
-			
+			else
+			{
+				return false;
+			}
+		}
+		else
+		{
 			return true;
 		}
-		return false;
 	}
 	
 	public boolean checkIfEmpty(int newX, int newY, CityPvpRoom cpr, int force, boolean exiting)
@@ -253,6 +276,7 @@ public class CityPvpEntity extends GameBase {
 		}
 		else
 		{
+			// Try to break
 			if (CityPvpBlock.recistance(cpr.getTile(newX,newY, 0), force)>=1)
 			{
 				cpr.changeTile(newX, newY, 0, 0);
@@ -336,7 +360,7 @@ public class CityPvpEntity extends GameBase {
 			    // Check if not empty
 				if (checkIfEmpty(newX, newY, cpr, force, false) == false)
 				{
-					// Faile
+					// Fail
 					return;
 				}
 				else

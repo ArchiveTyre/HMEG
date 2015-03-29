@@ -122,11 +122,14 @@ public class CityPvpWorld extends WorldBase {
 		{
 			secondRoom.changeTile(x, 0, 0, 1);
 			secondRoom.changeTile(x, secondRoom.ySectors-1, 0, 1);
+			
+			secondRoom.changeTile(x, 0, 2, 0);
+			secondRoom.changeTile(x, secondRoom.ySectors-1, 2, 0);
 		}
 		for(int y=0;y<secondRoom.ySectors;y++)
 		{
-			secondRoom.changeTile(0, y, 0, 1);
-			secondRoom.changeTile(secondRoom.xSectors-1, y, 0, 1);
+			secondRoom.changeTile(0, y, 2, 0);
+			secondRoom.changeTile(secondRoom.xSectors-1, y, 2, 0);
 		}
 		secondRoom.changeTile(0, 0, 0, 0);
 		
