@@ -154,6 +154,7 @@ public class CityPvpRoom extends CityPvpEntity{
 		        	final long m = 0xFF;
 		        	a &= ~m;
 		        	a |= (index & m);
+	        		break;
 		        }
 		        case 1:
 	        	{
@@ -161,6 +162,7 @@ public class CityPvpRoom extends CityPvpEntity{
 	        		index &= m;
 	        		a &= ~(m<<8);
 	        		a |= index<<8;
+	        		break;
 	        	}
 		        case 2:
 		        {
@@ -168,6 +170,7 @@ public class CityPvpRoom extends CityPvpEntity{
 	        		index &= m;
 	        		a &= ~(m<<24);
 	        		a |= index<<24;
+	        		break;
 		        }
 	        	default:
 	        		System.out.println("Invalid argument");

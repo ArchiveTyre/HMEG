@@ -127,99 +127,110 @@ public class CityPvpEntity extends GameBase {
 	// This is pretty self explanatory
 	public boolean moveToRoom(int newX,int newY, CityPvpRoom to, int force)
 	{
-		
+		// TODO: Dont do this, try find a door in the room we wish to enter.
+		/*
 		if (checkIfEmpty(newX, newY, to, force, true)==true)
 		{
 			this.moveToRoomThreadSafe(to);
 			return true;
 		}
+		
+		debug("could not enter room ~"+to.getId());
 		return false;
+		*/
+		
+		this.moveToRoomThreadSafe(to);
+		this.setUpdateCounter();
+		return true;
 	}
 	
+	// Returns true if there is something there
 	public boolean checkIfEntities(int newX, int newY, CityPvpRoom cpr, boolean exiting)
 	{
 		// Here we check if we bump into other entities
 		DbBase list[] = cpr.getListOfSubObjectsThreadSafe();
 		for(int i=0;i<list.length;i++)
 		{
+		
 			if (list[i] instanceof CityPvpEntity)
 			{
 				CityPvpEntity cpe = (CityPvpEntity)list[i];
 
-				// Get the size of entity
-				int eXSize=1;
-				int eYSize=1;
-				if(cpe instanceof CityPvpRoom)
+				if (cpe != this) // Don't check for collision with self
 				{
-					CityPvpRoom e=(CityPvpRoom)cpe;
-					eXSize=e.outerX;
-					eYSize=e.outerY;
-				}
-				
-			
-				{
-                    // Check for collision with another entity
-					if ( ((newX>=cpe.x) && (newX <(cpe.x+eXSize))) && ((newY>=cpe.y) && (newY<(cpe.y+eYSize))))
+
+					// Get the size of entity
+					int eXSize=1;
+					int eYSize=1;
+					if(cpe instanceof CityPvpRoom)
 					{
-						   // Check if room
-						if (cpe.itemtype!=CityPvpBlock.doorIn)
+						CityPvpRoom e=(CityPvpRoom)cpe;
+						eXSize=e.outerX;
+						eYSize=e.outerY;
+					}
+					
+				
+					{
+	                    // Check for collision with another entity
+						if ( ((newX>=cpe.x) && (newX <(cpe.x+eXSize))) && ((newY>=cpe.y) && (newY<(cpe.y+eYSize))))
 						{
+							debug("collision detected ~"+this.getId()+" bumped into ~"+cpe.getId());
+	
 							
-							// Move not possible, we can not move into or beside this entity
-							return true;
-						}
-						else
-						{
-							
-							
-							if (cpe != this)
+							// Check if room
+							if (cpe.itemtype!=CityPvpBlock.doorIn)
 							{
+								
+								// Move not possible, we can not move into or beside this entity
+								debug("not a room that can be entered");
+								return true;
+							}
+							else
+							{
+								
+								
 									if (exiting == false)
 									{
 										System.out.println("was true");
 										//return true;
-									
-									// This entity was a room. We can move into it.
-									debug("moveToRoom "+cpe.getId());
-									//this.moveToRoomThreadSafe(cpe);
-									//this.moveToRoom(cpe);
-									((NotificationSender)getDbRoot()).notifySubscribers(-2);
-									if (cpe == cpr)
-									{
-									
-									}
-									else
-									{
-										if (cpe instanceof CityPvpRoom)
+										
+										// This entity was a room. We can move into it.
+										debug("moveToRoom "+cpe.getId());
+										//this.moveToRoomThreadSafe(cpe);
+										//this.moveToRoom(cpe);
+										((NotificationSender)getDbRoot()).notifySubscribers(-2);
+										if (cpe == cpr)
 										{
-											
-											CityPvpRoom cpeRoom = (CityPvpRoom)cpe;
-											
-											int tmpX = (newX-cpe.x)*(cpeRoom.xSectors/cpeRoom.outerX);
-											int tmpY = (newY-cpe.y)*(cpeRoom.ySectors/cpeRoom.outerY);	
-											this.moveToRoom(newX, newY, (CityPvpRoom) cpe, force);
+											error("the parent room can not be in itself");
 										}
 										else
 										{
-	
+											if (cpe instanceof CityPvpRoom)
+											{
+												
+												CityPvpRoom cpeRoom = (CityPvpRoom)cpe;
+												
+												int tmpX = (newX-cpe.x)*(cpeRoom.xSectors/cpeRoom.outerX);
+												int tmpY = (newY-cpe.y)*(cpeRoom.ySectors/cpeRoom.outerY);	
+												this.moveToRoom(newX, newY, (CityPvpRoom) cpe, force);
+											}
+											else
+											{
+		
+											}
+										
 										}
-									
 									}
+									return true;
 								}
-								return false;
+								
 							}
-							else
-							{
-								debug("moveToRoom was not possible beacouse was its self "+cpe.getId());
 							
-							}
 						}
-						
-					}
 				}
 			}
 		}
-		return true;
+		return false;
 	}
 	public boolean doExit(int newX, int newY, CityPvpRoom cpr)
 	{ 
@@ -229,12 +240,13 @@ public class CityPvpEntity extends GameBase {
 		int tmpY = y;
 		CityPvpRoom cprRoom = (CityPvpRoom) cpr;
 		DbContainer pp=this.getParent().getParent();
-		debug("move from "+getParent()+ "to "+pp.getId());	
+		debug("move from ~"+getId()+ " to ~"+pp.getId());	
 		// Check if after leaving object shall be to left, right, above or under
 		tmpX=cprRoom.x+beforeX/(cprRoom.xSectors/cprRoom.outerX);
 		tmpY=cprRoom.y+beforeY/(cprRoom.ySectors/cprRoom.outerY);
 		
-		if(checkIfEmpty(tmpX,tmpY,(CityPvpRoom)pp, force, true)==true)
+		// TODO: For now dont check destination.
+		//if(checkIfEmpty(tmpX,tmpY,(CityPvpRoom)pp, force, true)==true)
 		{
 			
 			System.out.println("moving to room");
@@ -248,15 +260,16 @@ public class CityPvpEntity extends GameBase {
 			System.out.println("ExitPos "+ x +" "+ y);
 			return true;
 		}
-		else
+		/*else
 		{
-			System.out.println("couldent move to room.");
+			System.out.println("couldent move to room ~"+pp.getId()+" from ~"+getId()+ ", destination block is not empty");
 			return false;
-		}
+		}*/
 	}
 	
 	// This method checks if there are blocks there.
-	public boolean checkIfBlocks(int newX, int newY, CityPvpRoom cpr)
+	// Returns true if there is some block there
+	public boolean checkIfWalkableBlock(int newX, int newY, CityPvpRoom cpr)
 	{
 		
 		// 2 = ladder    walkable block [trancperant]
@@ -277,11 +290,13 @@ public class CityPvpEntity extends GameBase {
 		}
 	}
 	
+	// Returns true if empty
+	// Side effect: will move into rooms if possible.
 	public boolean checkIfEmpty(int newX, int newY, CityPvpRoom cpr, int force, boolean exiting)
 	{
-		if (checkIfBlocks(newX, newY, cpr))
+		if (checkIfWalkableBlock(newX, newY, cpr)==true)
 		{
-			System.out.println("Move on.");
+			System.out.println("No block in the way for ~"+this.getId()+" in room ~"+cpr.getId());
 			//return true;
 		}
 		else
@@ -304,15 +319,14 @@ public class CityPvpEntity extends GameBase {
 			return false;
 		}
 	  
+	   // Check if bumping into other entities
 	   if (checkIfEntities(newX, newY, cpr, exiting)==true)
 	   {
 		   System.out.println("true");
-		   return true;
-	   }
-	   else
-	   {
 		   return false;
 	   }
+
+	   return true;
 	}
 	
 	public void move(int dx, int dy, int mode)
