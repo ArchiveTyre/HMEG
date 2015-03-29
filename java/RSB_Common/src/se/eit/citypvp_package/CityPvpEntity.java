@@ -124,6 +124,7 @@ public class CityPvpEntity extends GameBase {
 			ro.unlockWrite();
 		}
 	}
+	// This is pretty self explanatory
 	public boolean moveToRoom(int newX,int newY, CityPvpRoom to, int force)
 	{
 		
@@ -134,6 +135,7 @@ public class CityPvpEntity extends GameBase {
 		}
 		return false;
 	}
+	
 	public boolean checkIfEntities(int newX, int newY, CityPvpRoom cpr, boolean exiting)
 	{
 		// Here we check if we bump into other entities
@@ -182,18 +184,26 @@ public class CityPvpEntity extends GameBase {
 									//this.moveToRoomThreadSafe(cpe);
 									//this.moveToRoom(cpe);
 									((NotificationSender)getDbRoot()).notifySubscribers(-2);
-									if (cpe instanceof CityPvpRoom)
+									if (cpe == cpr)
 									{
-										
-										CityPvpRoom cpeRoom = (CityPvpRoom)cpe;
-										
-										int tmpX = (newX-cpe.x)*(cpeRoom.xSectors/cpeRoom.outerX);
-										int tmpY = (newY-cpe.y)*(cpeRoom.ySectors/cpeRoom.outerY);	
-										this.moveToRoom(newX, newY, (CityPvpRoom) cpe, force);
+									
 									}
 									else
 									{
-										return true;	
+										if (cpe instanceof CityPvpRoom)
+										{
+											
+											CityPvpRoom cpeRoom = (CityPvpRoom)cpe;
+											
+											int tmpX = (newX-cpe.x)*(cpeRoom.xSectors/cpeRoom.outerX);
+											int tmpY = (newY-cpe.y)*(cpeRoom.ySectors/cpeRoom.outerY);	
+											this.moveToRoom(newX, newY, (CityPvpRoom) cpe, force);
+										}
+										else
+										{
+	
+										}
+									
 									}
 								}
 								return false;
@@ -250,7 +260,7 @@ public class CityPvpEntity extends GameBase {
 	{
 		
 		// 2 = ladder    walkable block [trancperant]
-		if (CityPvpBlock.isWalkable(cpr.getTile(newX, newY, 0))==false)
+		if (CityPvpBlock.isWalkable(cpr.getTile(newX, newY, 0))==true)
 		{ 
 			if (cpr.getTile(newX, newY, 0) == CityPvpBlock.doorOut)
 			{
@@ -258,12 +268,12 @@ public class CityPvpEntity extends GameBase {
 			}
 			else
 			{
-				return false;
+				return true;
 			}
 		}
 		else
 		{
-			return true;
+			return false;
 		}
 	}
 	
