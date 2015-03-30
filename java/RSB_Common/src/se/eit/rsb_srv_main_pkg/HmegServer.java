@@ -207,16 +207,16 @@ public class HmegServer extends OpServer
 				     	        switch(k)
 								{
 					 	        case 'a':
-					 	        	a.move(-1,0, 0);
+					 	        	a.velocityX += 1;
 									break;
 					 	        case 'd':
-					 	        	a.move(1,0, 0);
+					 	        	a.velocityX -= 1;
 									break;
 					 	        case 'w':
-					 	        	a.move(0,-1, 0);
+					 	        	a.velocityY += 1;
 									break;
 					 	        case 's':
-					 	        	a.move(0,1, 0);
+					 	        	a.velocityY += -1;
 									break;
 					 	       case 'g':
 					 	    	    // This is the cheat button, when user press it give more resources
@@ -228,11 +228,11 @@ public class HmegServer extends OpServer
 					 	        	avatar.giveItem(7, 5);
 					 	        	avatar.giveItem(8, 6);
 					 	        	avatar.giveItem(9, 7);
-					 	        	avatar.giveItem(9, -8);
-					 	        	avatar.giveItem(10, 8);
-					 	        	avatar.giveItem(11, 9);
-					 	        	avatar.giveItem(11, -8);
-					 	        	avatar.giveItem(14, -9);
+					 	        	avatar.giveItem(9, 8);
+					 	        	avatar.giveItem(10, 9);
+					 	        	avatar.giveItem(11, 10);
+
+					 	        	avatar.giveItem(14, 11);
 					 	        	
 					 	        	avatar.fill_mineral+=1;
 					 	        	avatar.fill_stone+=1;
@@ -259,7 +259,7 @@ public class HmegServer extends OpServer
 						 	        		w.lockWrite();
 						 	        		avatar.moveBetweenRooms(a);
 							 	        	a = avatar;
-							 	        	avatar.move(-1, 0, 0);
+							 	        	avatar.velocityX+= 1;
 						 	        	}
 						 	        	finally
 						 	        	{

@@ -16,6 +16,40 @@ static int controlPanel = 11;
 static int log = 12;
 static int avatarFigure = 13;// avatar figure. #ENTITY#
 static int ballon = 14;
+
+
+// This function tries to make an number (current) by the power of n
+static public int neutralise(int n, int current)
+{
+	if (current < 0)
+	{
+		// Was negative number
+		current += n;
+		// adding
+		if (current > 0)
+		{
+			current = 0;
+		}
+		return current;
+	}
+	if (current > 0)
+	{
+		// Was positiv number
+		current -= n;
+		if (current < 0)
+		{
+			current = 0;
+		}
+		return current;
+	}
+	return 0; // Is already zero
+}
+
+static public int getAirrecistance(int id)
+{
+	return 1;
+}
+
 static public int recistance(int id, int force)
 {
 	if (force >= 3 && id == 3)

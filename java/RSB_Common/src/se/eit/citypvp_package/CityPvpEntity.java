@@ -4,9 +4,15 @@ import se.eit.db_package.*;
 import se.eit.web_package.*;
 
 public class CityPvpEntity extends GameBase {
+	
+	public int velocityX = 0;
+	public int velocityY = 0;
+	
 	public int x = 0;
 	public int y = 0;
-	public int a = 0;
+	
+	
+	public int a = 0; // Number indecator for how many times it shall move
 	public int b = 0;
 	public int health = 20;
 	public int Oldx = 0;
@@ -66,8 +72,47 @@ public class CityPvpEntity extends GameBase {
 	// Denna metod anropas av game engine periodiskt
 	public void tickEntityMs(long deltaMs)
 	{
-		
-		//b+=deltaMs;
+
+		System.out.println(a+" "+ velocityX+ " "+velocityY);
+		DbBase currentRoom = this.getParent();
+		if (currentRoom instanceof CityPvpRoom)
+		{
+			int airresictance = CityPvpBlock.getAirrecistance(((CityPvpRoom) currentRoom).getTile(x, y, 0));
+			
+			if (a<100+1 || deltaMs+a > 100+1 && a<100+1)
+			{
+				a+=deltaMs;
+			}
+			
+			if (a >= 100)
+			{
+				if (velocityX > 0)
+				{
+					force = mass * velocityX;
+					move(1, 0);
+				}
+				if (velocityX < 0)
+				{
+					force = mass * velocityX;
+					move(-1, 0);
+				}
+				
+				if (velocityY > 0)
+				{
+					force = mass * velocityY;
+					move(0, 1);
+				}
+				if (velocityY < 0)
+				{
+					force = mass * velocityY;
+					move(0, -1);
+				}
+				velocityY = CityPvpBlock.neutralise(airresictance, velocityY);
+				velocityX = CityPvpBlock.neutralise(airresictance, velocityX);
+				a-=a;
+			}
+		}
+		/*//b+=deltaMs;
 		if (b<75+1 || deltaMs+b > 75+1 && b<75+1)
 		{
 			b+=deltaMs;
@@ -104,8 +149,9 @@ public class CityPvpEntity extends GameBase {
 			// DO GRAVITY
 			move(0,CityPvpBlock.inBlockGravity(cpr.getTile(x, y, 0)), 1);
 			a-=1000;
+			
 			}
-		}
+		}*/
 	}
 	
 
@@ -349,23 +395,9 @@ public class CityPvpEntity extends GameBase {
 	   return true;
 	}
 	
-	public void move(int dx, int dy, int mode)
+	public boolean move(int dx, int dy)
 	{
-		if (mode == 0)
-		{
-			// Movement speed restriction.
-			if (b >= (100))
-			{
-				//System.out.println("entity: "+b);
-					
-			}
-			else
-			{
-				//System.out.println("entity: "+b);
-				return;
-			}
-		}
-		
+	
 		DbRoot ro=this.getDbRoot();
 
 		ro.lockWrite();
@@ -387,7 +419,7 @@ public class CityPvpEntity extends GameBase {
 		        // Here we check that we will not move outside current room
 				if ( (newX<0) || (newX>=cpr.xSectors) || (newY<0) || (newY>=cpr.ySectors) )
 				{
-					return;
+					return false;
 				}
 				/*	// check if tile is an good place to move to;
 				if (checkIfBlocks(newX, newY, cpr)==true)
@@ -405,7 +437,7 @@ public class CityPvpEntity extends GameBase {
 				if (checkIfEmpty(newX, newY, cpr, force, false) == false)
 				{
 					// Fail
-					return;
+					return false;
 				}
 				else
 				{
@@ -424,7 +456,7 @@ public class CityPvpEntity extends GameBase {
 							}
 							else
 							{	
-							return;
+							return false;
 							}
 						}
 					}
@@ -462,14 +494,10 @@ public class CityPvpEntity extends GameBase {
 					y=newY;
 					
 					
-					
+					return true;
 					
 					//// SPEED CONTROL
-					
-					if (mode == 0)
-					{
-						b-=speedrecoil;
-					}
+
 			
 			
 					// Uppdatera rutan den var i, och rutan den kommer till 
@@ -487,7 +515,8 @@ public class CityPvpEntity extends GameBase {
 		{
 			ro.unlockWrite();
 		}
-		this.setUpdateCounter();			
+		this.setUpdateCounter();
+		return true;
 
 	}
 
