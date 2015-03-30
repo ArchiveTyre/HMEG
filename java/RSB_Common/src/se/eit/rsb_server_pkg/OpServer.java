@@ -425,7 +425,7 @@ public abstract class OpServer extends MirrorServer {
 					String n=wr.readWord(); // Name Or Index
 					if (isAdmin())
 					{
-						if (PlayerConnectionThread.isStringOkAsPw(n))
+						if (OpServer.isStringOkAsPw(n))
 						{
 							WorldBase ew=(WorldBase)worldBase;
 							ew.gamePassword=n;
@@ -463,5 +463,22 @@ public abstract class OpServer extends MirrorServer {
 		}
 		return true;
 	}
+
+	
+    public static boolean isStringOkAsPlayerName(String name)
+    {
+    	return WordWriter.isNameOk(name,1); // We shall perhaps require player names to be longer eventually.
+    }
+    
+	public static boolean isEmailAddressOk(String name)
+	{
+	    return WordWriter.isStringOk(name,"_.@-#$+~", 3); // Actually a lot more characters are allowed in an email address,  but for our own convenience we will allow only these.
+	}
+  
+	public static boolean isStringOkAsPw(String name)
+	{
+	    return WordWriter.isStringOk(name,"_.@-#$+~", 1); // We shall definitely require passwords to be longer later.
+	}
+
 	
 }

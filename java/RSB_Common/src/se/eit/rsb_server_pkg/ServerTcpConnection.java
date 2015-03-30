@@ -149,7 +149,7 @@ public class ServerTcpConnection {
 	}
 
     // To resume playing in a world the player has been playing in before.
-    protected String selectWorld()
+    public String selectWorld()
     {
     	String worldName=null;
     	debug("startNew");

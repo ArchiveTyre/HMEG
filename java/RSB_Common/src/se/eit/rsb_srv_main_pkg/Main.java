@@ -29,8 +29,6 @@ import java.io.IOException;
 //import java.io.InputStream;
 
 import se.eit.rsb_package.*;
-import se.eit.rsb_server_pkg.FileServer;
-import se.eit.rsb_server_pkg.SocketServer;
 import se.eit.rsb_server_pkg.TickThread;
 
 import java.io.PrintWriter;

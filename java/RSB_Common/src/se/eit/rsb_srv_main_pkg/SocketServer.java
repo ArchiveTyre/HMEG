@@ -1,4 +1,4 @@
-package se.eit.rsb_server_pkg;
+package se.eit.rsb_srv_main_pkg;
 
 import se.eit.db_package.DbRoot;
 import se.eit.rsb_srv_main_pkg.GlobalConfig;

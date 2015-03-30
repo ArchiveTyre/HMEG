@@ -17,20 +17,18 @@
 // Adapted for use with RSB. Henrik 2013-05-04
 
 
-package se.eit.rsb_server_pkg;
+package se.eit.rsb_srv_main_pkg;
 
 import java.io.IOException;
 import java.util.Random;
 
 import se.eit.rsb_package.*;
-import se.eit.rsb_srv_main_pkg.ChatRoomServer;
+import se.eit.rsb_server_pkg.OpServer;
+import se.eit.rsb_server_pkg.ServerTcpConnection;
 import se.eit.rsb_srv_main_pkg.CityPvpServer;
 import se.eit.rsb_srv_main_pkg.GlobalConfig;
 import se.eit.rsb_srv_main_pkg.HmegServer;
-import se.eit.rsb_srv_main_pkg.MibServer;
 import se.eit.rsb_srv_main_pkg.TextAdventureServer;
-
-// Should investigate if these imports can be avoided.
 import se.eit.citypvp_package.*;
 import se.eit.db_package.*;
 import se.eit.web_package.*;
@@ -126,21 +124,6 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
   
 
     
-    public static boolean isStringOkAsPlayerName(String name)
-    {
-    	return WordWriter.isNameOk(name,1); // We shall perhaps require player names to be longer eventually.
-    }
-    
-	public static boolean isEmailAddressOk(String name)
-	{
-	    return WordWriter.isStringOk(name,"_.@-#$+~", 3); // Actually a lot more characters are allowed in an email address,  but for our own convenience we will allow only these.
-	}
-  
-	public static boolean isStringOkAsPw(String name)
-	{
-	    return WordWriter.isStringOk(name,"_.@-#$+~", 1); // We shall definitely require passwords to be longer later.
-	}
-
 	
 	public boolean isOpen()
 	{
@@ -255,7 +238,7 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
         	{
         		break;
         	}
-        	else if (isStringOkAsPlayerName(name))
+        	else if (OpServer.isStringOkAsPlayerName(name))
     		{
 	    		Player player = findPlayer(name) ;
 	    		
@@ -269,7 +252,7 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
 	    	        {    			
 	    				String pw = stc.promptString("enter_new_password", "give new password");
 		    			   					    			
-		    			if (isStringOkAsPw(pw))
+		    			if (OpServer.isStringOkAsPw(pw))
 		    			{
 			    			/*String pw2 = promptBox("confirm_new_password", "confirm new password");
 			    			
@@ -284,7 +267,7 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
 					            	{
 					            		return;
 					            	}
-					            	else if (isEmailAddressOk(emailAddress))
+					            	else if (OpServer.isEmailAddressOk(emailAddress))
 					    			{					    				
 					    				player.password=pw;
 					    				player.emailAddress=emailAddress;
@@ -346,7 +329,7 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
         	{
         		break;
         	}
-        	else if (isStringOkAsPlayerName(name))
+        	else if (OpServer.isStringOkAsPlayerName(name))
     		{
     		
 	
@@ -397,11 +380,11 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
         		{
     				String pw = stc.promptString("enter_new_password", "give new password");
     		    	
-    				if (isStringOkAsPw(pw))
+    				if (OpServer.isStringOkAsPw(pw))
     				{
     	    			String pw2 = stc.promptString("confirm_new_password", "confirm new password");
     	    			
-    	    			if ((isStringOkAsPw(pw2)) && (pw2.equals(pw)))
+    	    			if ((OpServer.isStringOkAsPw(pw2)) && (pw2.equals(pw)))
     	    			{
     	    				player.password=pw;
     	    				player.saveRecursive(config);
@@ -424,7 +407,7 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
         		{
     				String ea = stc.promptString("enter_new_email", "give new email address");
     		    	
-    				if (isEmailAddressOk(ea))
+    				if (OpServer.isEmailAddressOk(ea))
     				{
     					player.emailAddress=ea;
     					player.saveRecursive(config);
@@ -659,17 +642,7 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
     		stc.alertBox("joining_world", "joining world "+ w.getNameAndPath("/"));
     		
     		// One "if" for each supported game here. If adding one here, add it in startNewGame also.
-    		if (w instanceof MibWorld)
-    		{
-    			MibServer mib=new MibServer(config, player, stc);
-    			mib.join(w);	    			
-    		}	    		
-    		else if (w instanceof ChatRoomWorld)
-    		{
-    			ChatRoomServer cs=new ChatRoomServer(config, player, stc);
-    			cs.join(w);
-    		}
-    		else if (w instanceof TextAdventureWorld)
+    		if (w instanceof TextAdventureWorld)
     		{
     			TextAdventureServer cs=new TextAdventureServer(config, player, stc);
     			cs.join(w);
@@ -684,11 +657,6 @@ public class PlayerConnectionThread extends Thread implements WebSocketConnectio
     			RoboGameServer rgc=new RoboGameServer(config, player, stc);
     			rgc.join(w);
     		}*/
-    		else  if ((w instanceof MibWorld) && (stc.dontUseRef==false))
-    		{
-    			MibServer mib=new MibServer(config, player, stc);
-    			mib.join(w);	    			
-    		}
     		else if (w instanceof HmegWorld)
     		{
     			HmegServer cps=new HmegServer(config, player, stc);

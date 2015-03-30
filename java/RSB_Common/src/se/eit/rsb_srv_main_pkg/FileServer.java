@@ -29,7 +29,7 @@ Created by Henrik Björkman 2013-05-16
 
 */
 
-package se.eit.rsb_server_pkg;
+package se.eit.rsb_srv_main_pkg;
 
 
 import java.net.*;
