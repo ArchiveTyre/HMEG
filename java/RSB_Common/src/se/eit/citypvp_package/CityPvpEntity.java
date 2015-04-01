@@ -12,8 +12,8 @@ public class CityPvpEntity extends GameBase {
 	public int y = 0;
 	
 	
-	public int a = 0; // Number indecator for how many times it shall move
-	public int b = 0;
+	public int movePoint = 0; // Number indicator for how many ticks until entity shall move
+	public int gravMovePoint = 0; // Number indicator for how many ticks left until next gravity.
 	public int health = 20;
 	public int Oldx = 0;
 	public int Oldy = 0;
@@ -74,12 +74,17 @@ public class CityPvpEntity extends GameBase {
 	{
 
 		
-		if (a<=100 || deltaMs+a >= 100 && a<=100)
+		if (movePoint<=100 || deltaMs+movePoint >= 100 && movePoint<=100)
 		{
-			a+=deltaMs;
+			movePoint+=deltaMs;
 		}
 		
-		System.out.println(a+" "+ velocityX+ " "+velocityY);
+		if (velocityY <= 0 && (gravMovePoint<=100 || deltaMs+gravMovePoint >= 100 && gravMovePoint<=100))
+		{
+			gravMovePoint+=deltaMs;
+		}
+		
+		//System.out.println(movePoint+" "+ velocityX+ " "+velocityY+ " grav: "+ gravMovePoint);
 		DbBase currentRoom = this.getParent();
 		if (currentRoom instanceof CityPvpRoom)
 		{
@@ -92,41 +97,79 @@ public class CityPvpEntity extends GameBase {
 				
 				
 				
-				if (a >= 100)
+				if (movePoint >= 100)
 				{
 					if (velocityX > 0)
 					{
 						force = mass * velocityX;
-						move(1, 0);
+						if (move(1, 0))
+						{
+							
+						}
+						else
+						{
+							CityPvpBlock.neutralise(mass, velocityX);
+						}
 					}
 					if (velocityX < 0)
 					{
 						force = mass * velocityX;
-						move(-1, 0);
+						if (move(-1, 0))
+						{
+							
+						}
+						else
+						{
+							CityPvpBlock.neutralise(mass, velocityX);
+						}
 					}
 					
 					if (velocityY > 0)
 					{
 						force = mass * velocityY;
-						move(0, 1);
+						if (move(0, 1))
+						{
+							
+						}
+						else
+						{
+							CityPvpBlock.neutralise(mass, velocityY);
+						}
 					}
 					if (velocityY < 0)
 					{
 						force = mass * velocityY;
-						move(0, -1);
+						if (move(0, -1))
+						{
+							
+						}
+						else
+						{
+							CityPvpBlock.neutralise(mass, velocityY);
+						}
 					}	
 				}
 			}
-					finally
-					{
-						ro.unlockWrite();
-					}
-					this.setUpdateCounter();
-					velocityY = CityPvpBlock.neutralise(airresictance, velocityY);
-					velocityX = CityPvpBlock.neutralise(airresictance, velocityX);
-					a-=a;
-				}
+			finally
+			{
+				ro.unlockWrite();
+			}
+			this.setUpdateCounter();
+			velocityY = CityPvpBlock.neutralise(airresictance, velocityY);
+			velocityX = CityPvpBlock.neutralise(airresictance, velocityX);
+			movePoint-=movePoint; // Reset movePoint
 		}
+		// Initilise Gravity
+		if (velocityY <=0 && gravMovePoint >= 100)
+		{
+			// TODO use proper method of gravity measurement.
+			velocityY += 1;
+			gravMovePoint -= gravMovePoint;
+		}
+	
+	
+	
+	}
 		
 	
 		/*//b+=deltaMs;
