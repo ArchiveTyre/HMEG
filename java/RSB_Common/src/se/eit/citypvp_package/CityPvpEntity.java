@@ -73,45 +73,62 @@ public class CityPvpEntity extends GameBase {
 	public void tickEntityMs(long deltaMs)
 	{
 
+		
+		if (a<=100 || deltaMs+a >= 100 && a<=100)
+		{
+			a+=deltaMs;
+		}
+		
 		System.out.println(a+" "+ velocityX+ " "+velocityY);
 		DbBase currentRoom = this.getParent();
 		if (currentRoom instanceof CityPvpRoom)
 		{
 			int airresictance = CityPvpBlock.getAirrecistance(((CityPvpRoom) currentRoom).getTile(x, y, 0));
-			
-			if (a<100+1 || deltaMs+a > 100+1 && a<100+1)
+			DbRoot ro=this.getDbRoot();
+			try
 			{
-				a+=deltaMs;
-			}
-			
-			if (a >= 100)
-			{
-				if (velocityX > 0)
-				{
-					force = mass * velocityX;
-					move(1, 0);
-				}
-				if (velocityX < 0)
-				{
-					force = mass * velocityX;
-					move(-1, 0);
-				}
+				ro.lockWrite(); 
 				
-				if (velocityY > 0)
+				
+				
+				
+				if (a >= 100)
 				{
-					force = mass * velocityY;
-					move(0, 1);
+					if (velocityX > 0)
+					{
+						force = mass * velocityX;
+						move(1, 0);
+					}
+					if (velocityX < 0)
+					{
+						force = mass * velocityX;
+						move(-1, 0);
+					}
+					
+					if (velocityY > 0)
+					{
+						force = mass * velocityY;
+						move(0, 1);
+					}
+					if (velocityY < 0)
+					{
+						force = mass * velocityY;
+						move(0, -1);
+					}	
 				}
-				if (velocityY < 0)
-				{
-					force = mass * velocityY;
-					move(0, -1);
-				}
-				velocityY = CityPvpBlock.neutralise(airresictance, velocityY);
-				velocityX = CityPvpBlock.neutralise(airresictance, velocityX);
-				a-=a;
 			}
+					finally
+					{
+						ro.unlockWrite();
+					}
+					this.setUpdateCounter();
+					velocityY = CityPvpBlock.neutralise(airresictance, velocityY);
+					velocityX = CityPvpBlock.neutralise(airresictance, velocityX);
+					a-=a;
+				}
 		}
+		
+	
 		/*//b+=deltaMs;
 		if (b<75+1 || deltaMs+b > 75+1 && b<75+1)
 		{
@@ -152,7 +169,7 @@ public class CityPvpEntity extends GameBase {
 			
 			}
 		}*/
-	}
+	
 	
 
 

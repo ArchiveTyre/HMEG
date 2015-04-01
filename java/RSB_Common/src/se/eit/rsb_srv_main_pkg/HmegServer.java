@@ -207,16 +207,16 @@ public class HmegServer extends OpServer
 				     	        switch(k)
 								{
 					 	        case 'a':
-					 	        	a.velocityX += 1;
-									break;
-					 	        case 'd':
 					 	        	a.velocityX -= 1;
 									break;
+					 	        case 'd':
+					 	        	a.velocityX += 1;
+									break;
 					 	        case 'w':
-					 	        	a.velocityY += 1;
+					 	        	a.velocityY -= 1;
 									break;
 					 	        case 's':
-					 	        	a.velocityY += -1;
+					 	        	a.velocityY += 1;
 									break;
 					 	       case 'g':
 					 	    	    // This is the cheat button, when user press it give more resources
