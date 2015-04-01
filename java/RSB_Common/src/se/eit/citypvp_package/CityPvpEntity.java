@@ -14,6 +14,7 @@ public class CityPvpEntity extends GameBase {
 	
 	public int movePoint = 0; // Number indicator for how many ticks until entity shall move
 	public int gravMovePoint = 0; // Number indicator for how many ticks left until next gravity.
+	public int walkMovePoint = 0;
 	public int health = 20;
 	public int Oldx = 0;
 	public int Oldy = 0;
@@ -77,6 +78,11 @@ public class CityPvpEntity extends GameBase {
 		if (movePoint<=100 || deltaMs+movePoint >= 100 && movePoint<=100)
 		{
 			movePoint+=deltaMs;
+		}
+		
+		if (walkMovePoint<=100 || deltaMs+walkMovePoint >= 100 && walkMovePoint<=100)
+		{
+			walkMovePoint+=deltaMs;
 		}
 		
 		if (velocityY <= 0 && (gravMovePoint<=100 || deltaMs+gravMovePoint >= 100 && gravMovePoint<=100))
@@ -212,7 +218,46 @@ public class CityPvpEntity extends GameBase {
 			
 			}
 		}*/
-	
+	public void walk(int direction)
+	{
+		/*
+		  	These are the directions.
+		  	___
+		    |0| 
+		   |1-2|
+		    |3|
+			---
+		*/
+		if (walkMovePoint>=100)
+		{
+			if (direction == 0 )
+			{
+				velocityY+=1;
+				
+			}
+			else if (direction == 1)
+			{
+				velocityX-=1;
+			}
+			else if (direction == 2)
+			{
+				velocityX+=1;
+			}
+			else if (direction == 3)
+			{
+				velocityY-=1;
+			}
+			else
+			{
+				System.out.println(direction+" is not an valid direction, valid directions are 0 - 3");
+			}
+			walkMovePoint-=walkMovePoint; // Reset it
+		}
+		else
+		{
+			System.out.println("not enough walk move points to move: "+walkMovePoint );
+		}
+	}
 	
 
 
