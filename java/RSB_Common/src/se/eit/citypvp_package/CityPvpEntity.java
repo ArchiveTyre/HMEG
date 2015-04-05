@@ -169,6 +169,7 @@ public class CityPvpEntity extends GameBase {
 		if (velocityY <=0 && gravMovePoint >= 100)
 		{
 			// TODO use proper method of gravity measurement.
+			
 			velocityY += 1;
 			gravMovePoint -= gravMovePoint;
 		}
@@ -227,12 +228,13 @@ public class CityPvpEntity extends GameBase {
 		   |1-2|
 		    |3|
 			---
-		*/
+		
+			*/
 		if (walkMovePoint>=100)
 		{
 			if (direction == 0 )
 			{
-				velocityY+=1;
+				velocityY-=2;
 				
 			}
 			else if (direction == 1)
@@ -245,7 +247,7 @@ public class CityPvpEntity extends GameBase {
 			}
 			else if (direction == 3)
 			{
-				velocityY-=1;
+				velocityY+=1;
 			}
 			else
 			{
