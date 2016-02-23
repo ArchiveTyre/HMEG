@@ -1,7 +1,8 @@
 /*
 WebServer.java
 
-Copyright (C) 2014 Henrik Björkman www.eit.se/hb
+Copyright (C) 2016 Henrik Björkman (www.eit.se/hb)
+License: www.eit.se/rsb/license
 
 The plan is to release this web server package under GPL v3, (but it is not yet so).
 
@@ -24,13 +25,13 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-//import se.eit.db_package.DbRoot;
+//import se.eit.db_package.DbSubRoot;
 
 public class WebServer implements Runnable {
 	String httpRootDir;
 	WebSocketServer webSocketServer=null;
 	
-	WebConnection pctList[]=new WebConnection[4];
+	WebConnection pctList[]=new WebConnection[4];  // Perhaps we should used DbList here? But then we need to rename DbList to WebList and move it to this package since we don't want this package to be depending on db_package. Will leave it as is for now (it works after all). Oh wait, a class called MyDynamicSizeList has been created for this but is not yet used.
 	
     public final static int DEFAULT_PORT = 8080;
     protected int port;  // This is the port number to use when opening the tcp/ip server port.
@@ -62,8 +63,8 @@ public class WebServer implements Runnable {
 		this.httpRootDir=httpRootDir;
 	    this.webSocketServer=webSocketServer;	    
 	    this.webFileServer=webFileServer;
-	    setupServer(port);
     	printLocalHostName();
+	    setupServer(port);
 	}
 	
 
@@ -83,7 +84,7 @@ public class WebServer implements Runnable {
             //fail(e, "Exception creating server socket, port="+port);
         	System.exit(1);
         }
-        debug("listening on port " + port);
+        System.out.println("listening on port " + port);
     }
 
 	
@@ -112,8 +113,8 @@ public class WebServer implements Runnable {
 	            Thread t = new Thread(clientConnection);
 	            t.start();
 	        	
-	        	
-    			debug("connect, slot="+i+", from="+clientConnection.getInfo());
+	    		final String tmpStr=clientConnection.getConnectionTime();
+    			debug("connect, slot="+i+", from="+clientConnection.getTcpInfo() + ", time="+tmpStr);
 
             }
             catch (IOException e) 

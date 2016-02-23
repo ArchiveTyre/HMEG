@@ -2,13 +2,10 @@
 
 FileServer.java
 
-Copyright (C) 2013 Henrik Björkman www.eit.se/hb
+Copyright (C) 2016 Henrik Björkman (www.eit.se/hb)
+License: www.eit.se/rsb/license
 
 
-This program is created by modifying an example from the book 
-_Java in a Nutshell_ by David Flanagan. You may study, use, modify, 
-and distribute this example for any purpose. This program is 
-provided WITHOUT WARRANTY either expressed or implied.
 
 
 This is a generic class to handle line oriented messages over TCP/IP
@@ -36,8 +33,8 @@ import java.net.*;
 
 import se.eit.citypvp_package.CityPvpRoom;
 import se.eit.db_package.DbBase;
-import se.eit.db_package.DbRoot;
-import se.eit.rsb_srv_main_pkg.GlobalConfig;
+import se.eit.db_package.DbSubRoot;
+import se.eit.rsb_factory_pkg.GlobalConfig;
 import se.eit.web_package.*;
 
 
@@ -50,7 +47,7 @@ public class FileServer implements WebFileServer
     protected ServerSocket serverSocket;  // this is our tcp/ip server socket, clients connect to it.
     WebConnection[] listOfConnections=new WebConnection[32];   // hmm, There is also a list of connections in ServerThread. We should remove one of these.
     GlobalConfig config;
-    DbRoot dataBase;
+    DbSubRoot dataBase;
     
     /*
     public static void println(String s)
@@ -83,7 +80,7 @@ public class FileServer implements WebFileServer
     }
     */
     
-    public FileServer(GlobalConfig config, DbRoot dataBase) 
+    public FileServer(GlobalConfig config, DbSubRoot dataBase) 
     {
     	this.config=config;
     	this.dataBase=dataBase;
@@ -120,13 +117,14 @@ public class FileServer implements WebFileServer
 				//DbBase o = dataBase.getObjFromIndexPath(path);
 				DbBase o = dataBase.findObjectByNameIndexOrId(path);
 
-		    	if ((o!=null) && (o instanceof CityPvpRoom))
+		    	/*if ((o!=null) && (o instanceof CityPvpRoom))
 		    	{
 					// http://stackoverflow.com/questions/3211156/how-to-convert-image-to-byte-array-in-java
 				
-					//CityPvpRoom cpr=(CityPvpRoom)o;
-					//wfd = cpr.getFile(config);
-		    	}
+		    		// TODO This package should not depend on CityPvp package.
+					CityPvpRoom cpr=(CityPvpRoom)o;
+					wfd = cpr.getFile(config);
+		    	}*/
 
 			}
 		}

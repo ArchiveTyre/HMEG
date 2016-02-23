@@ -1,0 +1,4 @@
+
+{ 
+	"versionInfo" : "www.eit.se/rsb/0.9" , "PlayerData" :[[0,"a",-1,1,"a","/127.0.0.1:42821","null@eit.se",24270936,442076,"unknown","unknown","unknown","unknown","backspace backOrCancel tab showScore enter returnCode leftShift crouchOrDuck esc mouseRelease space jumpUp pageUp pageUp pageDown pageDown end endCode home mouseCapture rightArrow rightOne upArrow upOne leftArrow leftOne downArrow downOne A moveLeft B clearText D moveRight F actionKey I invScreen N testBeep S moveBackwards V enterText W moveForward","171 \"do on\" 71 \"selectAction\" 72 \"colorNext\" 107 \"do on\" 74 \"colorPrevious\" 51 \"do right\" 84 \"swapTeam\" 50 \"do center\" 49 \"do left\" 48 \"do off\" 55 \"do down\" 54 \"do forward\" 53 \"do stop\" 82 \"teleportHome\" 52 \"do reverse\" 57 \"do up\" 56 \"do level\""]]
+}  

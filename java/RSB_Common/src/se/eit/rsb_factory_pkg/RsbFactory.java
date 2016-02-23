@@ -1,19 +1,14 @@
-package se.eit.rsb_srv_main_pkg;
+/*
+Copyright (C) 2016 Henrik Björkman (www.eit.se/hb)
+License: www.eit.se/rsb/license
+*/
+package se.eit.rsb_factory_pkg;
 
-import se.eit.TextAdventure.TextAdventureWorld;
-import se.eit.citypvp_package.CityPvpAvatar;
-import se.eit.citypvp_package.CityPvpEntity;
-import se.eit.citypvp_package.CityPvpRoom;
-import se.eit.citypvp_package.CityPvpWorld;
-import se.eit.citypvp_package.HmegWorld;
+import se.eit.citypvp_package.*;
 import se.eit.db_package.DbBase;
-import se.eit.rsb_package.ChatRoomWorld;
-import se.eit.rsb_package.Player;
-import se.eit.rsb_package.RsbBigBitMap;
-import se.eit.rsb_package.RsbLong;
-import se.eit.rsb_package.RsbRoundBuffer;
-import se.eit.rsb_package.RsbString;
-import se.eit.rsb_package.WorldBase;
+import se.eit.db_package.DbNoSaveRoot;
+import se.eit.db_package.DbSubRoot;
+import se.eit.rsb_package.*;
 
 public class RsbFactory {
 	
@@ -42,8 +37,6 @@ public class RsbFactory {
 	// Thats all classes that inherit DbBase shall be listed here.
 	public static DbBase createObj(String t) throws NumberFormatException
 	{
-		DbBase bo = null;
-		
 		// Here all classes that do send something from their listChangedObjects methods needs to be handled.		
 		final char ch=t.charAt(0);
 		switch(ch)
@@ -52,23 +45,23 @@ public class RsbFactory {
 			{
 				if (t.equalsIgnoreCase("ChatRoomWorld"))
 				{
-					bo = new ChatRoomWorld();
+					return new ChatRoomWorld();
 				}
 				else if (t.equalsIgnoreCase("CityPvpWorld"))
 				{
-					bo = new CityPvpWorld();
+					return new CityPvpWorld();
 				}
 				else if (t.equalsIgnoreCase("CityPvpRoom"))
 				{
-					bo = new CityPvpRoom();
+					return new CityPvpRoom();
 				}
 				else if (t.equalsIgnoreCase("CityPvpEntity"))
 				{
-					bo = new CityPvpEntity();
+					return new CityPvpEntity();
 				}
 				else if (t.equalsIgnoreCase("CityPvpAvatar"))
 				{
-					bo = new CityPvpAvatar();
+					return new CityPvpAvatar();
 				}
 				else
 				{
@@ -80,7 +73,7 @@ public class RsbFactory {
 			{
 				if (t.equalsIgnoreCase("HmegWorld"))
 				{
-					bo = new HmegWorld();
+					return new HmegWorld();
 				}
 				else
 				{
@@ -90,9 +83,9 @@ public class RsbFactory {
 			}
 			case 'P':
 			{
-				if (t.equalsIgnoreCase("Player"))
+				if ((t.equalsIgnoreCase("Player")) || (t.equalsIgnoreCase("PlayerData")))
 				{
-					bo = new Player();
+					return new PlayerData();
 				}
 				else
 				{
@@ -104,19 +97,19 @@ public class RsbFactory {
 			{
 				if (t.equalsIgnoreCase("RsbLong"))
 				{
-					bo = new RsbLong();
+					return new RsbLong();
 				}
 				else if (t.equalsIgnoreCase("RsbBigBitMap"))
 				{
-					bo = new RsbBigBitMap();
+					return new RsbBigBitMap();
 				}
 				else if (t.equalsIgnoreCase("RsbRoundBuffer"))
 				{
-					bo = new RsbRoundBuffer();
+					return new RsbRoundBuffer();
 				}
 				else if (t.equalsIgnoreCase("RsbString"))
 				{
-					bo = new RsbString();
+					return new RsbString();
 				}
 				else
 				{
@@ -124,24 +117,27 @@ public class RsbFactory {
 				}
 				break;				
 			}
-			case 'T':
+			case 'A':
 			{
-				if (t.equalsIgnoreCase("TextAdventureWorld"))
+				if (t.equalsIgnoreCase("ActivePlayerList"))
 				{
-					bo = new TextAdventureWorld();
+					return new ActivePlayerList();
 				}
-				break;	
+				else if (t.equalsIgnoreCase("AvatarPlayerReferences"))
+				{
+					return new AvatarPlayerReferences();
+				}
+				break;				
 			}
-			
-			case 'W':
-			{				
-				if (t.equalsIgnoreCase("WorldBase"))
+			case 'D':
+			{
+				if (t.equalsIgnoreCase("DbSubRoot"))
 				{
-					bo = new WorldBase();
+					return new DbSubRoot();
 				}
-				else
+				else if (t.equalsIgnoreCase("DbNoSaveRoot"))
 				{
-					static_error("unknown object "+t);
+					return new DbNoSaveRoot();
 				}
 				break;				
 			}
@@ -150,22 +146,18 @@ public class RsbFactory {
 				if (t.equalsIgnoreCase("}"))
 				{
 					// This was an end marker, there are no more sub objects.
-					bo = null;
-				}
-				else
-				{
-					static_error("unknown object "+t);
+					return null;
 				}
 				break;				
 			}
 			default:
 			{
-				debug("unknown object "+t);
-				throw(new NumberFormatException("unknown object "+t));
+				 // do nothing, error is reported further down.
 			}
 		}
-
-		return bo;
+		
+		static_error("unknown object "+t);
+		throw(new NumberFormatException("unknown object '"+t+"'"));			
 	}
 
 }

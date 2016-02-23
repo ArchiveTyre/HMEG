@@ -1,3 +1,7 @@
+/*
+Copyright (C) 2016 Henrik Björkman (www.eit.se/hb)
+License: www.eit.se/rsb/license
+*/
 
 package se.eit.rsb_server_pkg;
 
@@ -5,11 +9,12 @@ package se.eit.rsb_server_pkg;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-//import java.net.DatagramSocket;
 import java.net.SocketAddress;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-//import se.eit.rsb_package.WordWriter;
+
+
+
 
 /*
 Header format:

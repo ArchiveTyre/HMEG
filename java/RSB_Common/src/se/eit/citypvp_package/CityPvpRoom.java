@@ -40,7 +40,7 @@ public class CityPvpRoom extends CityPvpEntity{
 	public final int gridSizeY=16;
 
 	
-	public CityPvpRoom(DbBase parent, String name) 
+	public CityPvpRoom(DbContainer parent, String name) 
 	{
 		super(parent, name);	
 
@@ -390,7 +390,7 @@ public class CityPvpRoom extends CityPvpEntity{
 	public String getImageName()
 	{
 		//final String n="tmp"+this.getIndexPath("/");
-        DbRoot dr = getDbRoot();
+        DbSubRoot dr = getDbSubRoot();
 		final String n="tmp"+dr.getIndexPath("/")+"/~"+this.getId();
 		return n;
 	}

@@ -12,8 +12,6 @@ import java.io.IOException;
 
 import se.eit.rsb_package.*;
 import se.eit.rsb_server_pkg.ServerBase;
-import se.eit.rsb_server_pkg.ServerTcpConnection;
-import se.eit.rsb_srv_main_pkg.GlobalConfig;
 import se.eit.citypvp_package.*;
 import se.eit.db_package.*;
 import se.eit.web_package.*;
@@ -51,7 +49,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 	
     public void debug(String str)
 	{
-    	WordWriter.safeDebug(className()+"("+stc.getInfo()+"): "+str);
+    	WordWriter.safeDebug(className()+"("+stc.getTcpInfo()+"): "+str);
 	}
 
     public static void error(String str)
@@ -61,14 +59,15 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 	
 	
 	
-	public CityPvpServer(GlobalConfig config, Player player, ServerTcpConnection cc)
+	public CityPvpServer()
 	{
-		super(config, player, cc);	
+		super();	
 	}
 	
+	/*
     public CityPvpWorld createAndStoreNewGame(String worldName)
     {
-		DbRoot wdb=stc.findWorldsDb();
+    	DbSubRoot wdb=stc.findWorldsDb();
     	
     	// Create the new world
 		CityPvpWorld newWorld = new CityPvpWorld(wdb, worldName, player.getName());
@@ -95,6 +94,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
    		createAndStoreNewGame(worldName);
 		return worldName;
     }
+    */
 	
 	public CityPvpWorld findChatRoom(String name)
 	{		
@@ -104,7 +104,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
     		return null;
     	}
     	
-    	DbRoot worldsDatabase = stc.findWorldsDb();
+    	DbSubRoot worldsDatabase = stc.findOrCreateGameDb();
 
 		if (worldsDatabase==null)
 		{
@@ -112,7 +112,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 			return null;
 		}
     	
-		DbRoot ro = worldsDatabase.findDb(name);
+		DbSubRoot ro = worldsDatabase.findDb(name);
 		
 
 		if (ro==null)
@@ -192,7 +192,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 				}
 			}	
 			*/
-			notify(-1,-2);
+			notifyRef(-1,-2);
 			
 			w.messageFromPlayer(player, "joined");
 			stc.writeLine("TextBoxAppend \""+"Hello "+player.getName()+"!\"");
@@ -252,7 +252,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 	     	        	if (obj !=null)
 	     	        	{
 		     	        	currentbuilding = obj.itemtype;
-			     	        notify(-1,-2);
+			     	        notifyRef(-1,-2);
 			     	        debug("currentbuilding set:"+currentbuilding);
 	     	        	}
 	     	        
@@ -384,15 +384,15 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 		     	    	    {
 		     	    	    	state = 0;
 		     	    	    }
-		     	        	notify(-1,-2);
+		     	        	notifyRef(-1,-2);
 							break;	
 			     	      case 'q':
 			     	        	try
 			     	        	{
 			     	        		w.lockWrite();
-			     	        		avatar.moveBetweenRooms(a);
+			     	        		avatar.moveToRoom(a);
 				     	        	a = avatar;
-				     	    //    	avatar.move(-1, 0, 1);
+				     	        	avatar.move(-1, 0);
 			     	        	}
 			     	        	finally
 			     	        	{
@@ -436,6 +436,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 	
 
     // We get here when client wants to enter chat room
+	/*
     protected void join(String chatRoomName)
     {
         debug("chatRoom: worldName \"" + chatRoomName+"\" playerName \"" + player.getName() +"\"");
@@ -467,7 +468,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 	        
         debug("chatRoom end");
     }   
-
+	*/
     
 	public int messageFromPlayer(String msg)
 	{
@@ -536,7 +537,8 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 	//	return;
 	
 	// metoden här blir anropad av "spelvärldsklassen" när nått nytt har hänt.
-	public void notify(int subscribersRef, int sendersRef)
+	@Override
+	public void notifyRef(int subscribersRef, int sendersRef)
 	{
 		try {
 
@@ -588,7 +590,7 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 					else
 					{
 						//cc.writeLine("TextBoxAppend \""+msg+"!\"");
-						WordWriter ww = new WordWriter(stc.getTcpConnection());
+						WordWriter ww = new WordWriterWebConnection(stc.getTcpConnection());
 						ww.writeName("TextBoxAppend");
 						ww.writeString(msg);
 						ww.flush();
@@ -791,6 +793,19 @@ public class CityPvpServer extends ServerBase implements NotificationReceiver {
 			debug("notify: IOException "+e);
 			e.printStackTrace();
 		}			
+	}
+
+	
+
+	@Override
+	public WorldBase createWorld() {
+		return new CityPvpWorld();
+	}
+
+	@Override
+	public void joinWorld() {
+		joinCityPvp((CityPvpWorld)worldBase);	
+		
 	}
 
 }

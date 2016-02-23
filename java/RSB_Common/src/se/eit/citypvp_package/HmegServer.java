@@ -5,14 +5,12 @@ Copyright (c) 2015 Henrik Björkman (www.eit.se/hb)
 
 */
 
-package se.eit.rsb_srv_main_pkg;
+package se.eit.citypvp_package;
 
 import java.io.IOException;
 
 import se.eit.rsb_package.*;
 import se.eit.rsb_server_pkg.OpServer;
-import se.eit.rsb_server_pkg.ServerTcpConnection;
-import se.eit.citypvp_package.*;
 import se.eit.db_package.*;
 import se.eit.web_package.*;
 
@@ -34,7 +32,7 @@ public class HmegServer extends OpServer
 	
     public void debug(String str)
 	{
-    	WordWriter.safeDebug(className()+"("+stc.getInfo()+"): "+str);
+    	WordWriter.safeDebug(className()+"("+stc.getTcpInfo()+"): "+str);
 	}
 
     public static void error(String str)
@@ -44,10 +42,8 @@ public class HmegServer extends OpServer
 
     
     
-	public HmegServer(GlobalConfig config, Player player,
-			ServerTcpConnection stc) {
-		super(config, player, stc);
-		// TODO Auto-generated constructor stub
+	public HmegServer() {
+		super();
 	}
 
 
@@ -61,9 +57,11 @@ public class HmegServer extends OpServer
 		}
 		return null;
 	}
+	
+	/*
     public HmegWorld createAndStoreNewGame(String worldName)
     {
-		DbRoot wdb=stc.findWorldsDb();
+		DbSubRoot wdb=stc.findWorldsDb();
     	
     	// Create the new world
 		HmegWorld newWorld = new HmegWorld(wdb, worldName, player.getName());
@@ -91,18 +89,12 @@ public class HmegServer extends OpServer
    		createAndStoreNewGame(worldName);
 		return worldName;
     }
+    */
 
 	@Override
-	public void join(DbBase bo)
+	public void joinWorld()
 	{
-		if (bo instanceof HmegWorld)
-		{
-			joinHmeg((HmegWorld)bo);
-		}
-		else
-		{
-			error("not a HMEG game");
-		}
+		joinHmeg((HmegWorld)worldBase);
 	}
 	
 
@@ -263,18 +255,18 @@ public class HmegServer extends OpServer
 					 	    	    }
 					 	        	notify(-1,-2);
 									break;	*/
-						 	      case 'q':
-						 	        	try
-						 	        	{
-						 	        		w.lockWrite();
-						 	        		avatar.moveBetweenRooms(a);
-							 	        	a = avatar;
-							 	        	avatar.velocityX+= 1;
-						 	        	}
-						 	        	finally
-						 	        	{
-						 	        		w.unlockWrite();
-						 	        	}		     	        	
+					     	      case 'q':
+					     	        	try
+					     	        	{
+					     	        		w.lockWrite();
+					     	        		avatar.moveToRoom(a);
+						     	        	a = avatar;
+						     	        	avatar.move(-1, 0);
+					     	        	}
+					     	        	finally
+					     	        	{
+					     	        		w.unlockWrite();
+					     	        	}		     	        	
 										break;
 								default: 
 									break;
@@ -303,7 +295,7 @@ public class HmegServer extends OpServer
 		     	        	if (obj !=null)
 		     	        	{
 			     	        	currentbuilding = obj.itemtype;
-				     	        notify(-1,-2);
+			     	        	notifyRef(-1,-2);
 				     	        debug("currentbuilding set:"+currentbuilding);
 		     	        	}
 						}
@@ -315,7 +307,7 @@ public class HmegServer extends OpServer
 					case 'm':
 						if (cmd.equals("mirrorAck")) // TODO: This shall be in class MirrorServer
 						{
-							updateSequenceNumberReceived=wr.readInt();
+							serverSequenceNumberReceived=wr.readInt();
 						}
 						else if (cmd.equals("mapClick"))
 						{
@@ -396,11 +388,14 @@ public class HmegServer extends OpServer
 							final String txtMsg=wr.readString();
 							String line=WordReader.removeQuotes(txtMsg);
 							WordReader wr2=new WordReader(line);
+							WordWriter ww2=new WordWriter();
 							String cmd2=wr2.readWord();
-							if (doCommand(cmd2, wr2)==false)
+							if (doCommand(cmd2, wr2, ww2)==false)
 							{
 								unknownCommand(cmd2);
 							}
+							String m=ww2.getString();
+							writeLine(m);
 						}
 						else
 						{
@@ -467,6 +462,19 @@ public class HmegServer extends OpServer
 		
 		
 		
+	}
+
+	// We override this since for HMEG we don't want any custom script, at least not for now. Comment this method out if custom script shall be used.
+	@Override
+    public void configureGame()
+    {
+		worldBase.generateWorld();
+    }
+
+
+	@Override
+	public WorldBase createWorld() {
+		return new HmegWorld();
 	}
 	
 	

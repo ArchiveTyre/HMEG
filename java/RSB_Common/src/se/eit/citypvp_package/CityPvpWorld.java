@@ -33,15 +33,15 @@ public class CityPvpWorld extends WorldBase {
 	}
 
 
-	public CityPvpWorld(DbBase parent, String name, String createdBy) 
+	public CityPvpWorld(DbContainer parent, String name, String createdBy) 
 	{
 		super(parent);
 		
-		setName(name);
+		regName(name);
 		setCreatedBy(createdBy);
 		
-		// we don't generate here, the caller must write lock and call generateWorld in a separate call.
-		//generateWorld();
+		// we don't generate here, the caller must write lock and call generateSelf in a separate call.
+		//generateSelf();
 	}
 
 	public CityPvpWorld()
@@ -50,12 +50,12 @@ public class CityPvpWorld extends WorldBase {
 	}
 
 	
-	public void generateWorld()
+	public void generateSelf()
 	{
 		
 		debug("creating new world " + getNameAndPath("/"));
 		//WorldRoot2d worldRoot = new WorldRoot2d();
-		//worldRoot.generateWorld();
+		//worldRoot.generateSelf();
 		//worldRoot.registerSelfInDbIdListAndAdd(this);
 
 		
@@ -265,7 +265,7 @@ public class CityPvpWorld extends WorldBase {
 	}
 	*/
 
-	public void messageFromPlayer(Player player, String msg)
+	public void messageFromPlayer(PlayerData player, String msg)
 	{		
 		//stringFifo.put(msg);
 		debug("messageFromPlayer "+player.getName()+" "+msg);
@@ -296,35 +296,35 @@ public class CityPvpWorld extends WorldBase {
 	}
 	
 
-	public CityPvpAvatar playerJoined(Player player)
+	public CityPvpAvatar playerJoined(PlayerData player)
 	{
-		// Har spelaren en avatar redan
-		CityPvpAvatar avatar = (CityPvpAvatar) this.findDbNamedRecursive(player.getName(), 999);						
-
-		if (avatar==null)
-		{
-			// Ingen hittad, skapa en ny,
-			DbBase spawnRoom = this.findDbNamedRecursive("spawnRoom", 5);	
+		CityPvpAvatar avatar=null;
+		
+		this.lockWrite();
+		try{
 			
-			if (spawnRoom==null)
+			// Har spelaren en avatar redan
+			avatar = (CityPvpAvatar) this.findDbNamedRecursive(player.getName(), 999);						
+	
+			if (avatar==null)
 			{
-				error("did not find spawn room");
+				// Ingen hittad, skapa en ny,
+				DbContainer spawnRoom = (DbContainer)this.findDbNamedRecursive("spawnRoom", 5);	
 				
-			}
-			else
-			{
-				DbRoot ro = this.getDbRoot();
-				ro.lockWrite();
-				try
+				if (spawnRoom==null)
+				{
+					error("did not find spawn room");
+					
+				}
+				else
 				{
 				    avatar = new CityPvpAvatar(spawnRoom , player.getName());
 				}
-				finally
-				{
-					ro.unlockWrite();
-				}
-				
 			}
+		}
+		finally
+		{
+			this.unlockWrite();			
 		}
 		
 		return avatar;
@@ -339,7 +339,7 @@ public class CityPvpWorld extends WorldBase {
 		if (notificationDataList.size()!=0)
 		{
 			// TODO: Here we do tick on all objects in this game regardless if those need it or not. We could use CPU more efficiently...
-			for (DbIdObj dio : idList)
+			for (DbIdObj dio : idList.dbListId)
 			{
 				if (dio instanceof CityPvpEntity)
 				{
@@ -348,6 +348,13 @@ public class CityPvpWorld extends WorldBase {
 				}
 			}
 		}
+	}
+
+	// This returns the name of the server object that clients shall use to play this world.
+	@Override
+	public String serverForThisWorld()
+	{
+		return "CityPvpServer";
 	}
 
 }

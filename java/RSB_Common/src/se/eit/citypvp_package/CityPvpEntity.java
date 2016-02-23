@@ -1,9 +1,8 @@
 package se.eit.citypvp_package;
-import se.eit.rsb_package.*;
 import se.eit.db_package.*;
 import se.eit.web_package.*;
 
-public class CityPvpEntity extends GameBase {
+public class CityPvpEntity extends DbThreadSafe {
 	
 	public int velocityX = 0;
 	public int velocityY = 0;
@@ -31,7 +30,7 @@ public class CityPvpEntity extends GameBase {
 	
 	
 	
-	public CityPvpEntity(DbBase parent, String name) 
+	public CityPvpEntity(DbContainer parent, String name) 
 	{
 		super();
 		linkSelf(parent);
@@ -95,7 +94,7 @@ public class CityPvpEntity extends GameBase {
 		if (currentRoom instanceof CityPvpRoom)
 		{
 			int airresictance = CityPvpBlock.getAirrecistance(((CityPvpRoom) currentRoom).getTile(x, y, 0));
-			DbRoot ro=this.getDbRoot();
+			DbSubRoot ro=this.getDbSubRoot();
 			try
 			{
 				ro.lockWrite(); 
@@ -263,7 +262,7 @@ public class CityPvpEntity extends GameBase {
 	
 
 
-	public void doMoveAnimation(DbRoot ro)
+	public void doMoveAnimation(DbSubRoot ro)
 	{	
 		ro.lockWrite();
 		try {
@@ -356,7 +355,7 @@ public class CityPvpEntity extends GameBase {
 										debug("moveToRoom "+cpe.getId());
 										//this.moveToRoomThreadSafe(cpe);
 										//this.moveToRoom(cpe);
-										((NotificationSender)getDbRoot()).notifySubscribers(-2);
+										((NotificationSender)getDbSubRoot()).notifySubscribers(-2);
 										if (cpe == cpr)
 										{
 											error("the parent room can not be in itself");
@@ -505,7 +504,7 @@ public class CityPvpEntity extends GameBase {
 	public boolean move(int dx, int dy)
 	{
 	
-		DbRoot ro=this.getDbRoot();
+		DbSubRoot ro=this.getDbSubRoot();
 
 		ro.lockWrite();
 		try

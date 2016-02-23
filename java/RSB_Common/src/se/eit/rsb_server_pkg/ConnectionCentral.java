@@ -3,7 +3,8 @@ ConnectionCentral.java
 
 To be used in server
 
-Copyright (C) 2013 Henrik Björkman www.eit.se
+Copyright (C) 2016 Henrik Björkman (www.eit.se/hb)
+License: www.eit.se/rsb/license
 
 History:
 Adapted for use with RSB. Henrik 2013-05-04
@@ -19,10 +20,10 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-//import java.net.InetAddress;
 import java.net.SocketAddress;
-//import java.net.UnknownHostException;
 
+
+// TODO: Perhaps this class is no longer used?
 
 
 public class ConnectionCentral {
@@ -180,6 +181,24 @@ public class ConnectionCentral {
 	   }
 	}
 	
+
+	// On gimli use this
+	/*
+	public synchronized void println(DatagramSocket ds, SocketAddress	sa, String str)
+	{
+		byte[] b=str.getBytes();
+		DatagramPacket dp=null;
+		dp = new DatagramPacket(b, b.length, sa);
+		try {
+			ds.send(dp);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	*/
+
+
+	// On others use this
 	public synchronized void println(DatagramSocket ds, SocketAddress	sa, String str)
 	{
 		byte[] b=str.getBytes();

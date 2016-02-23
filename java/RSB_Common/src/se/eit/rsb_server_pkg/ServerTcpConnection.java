@@ -1,3 +1,12 @@
+// ServerTcpConnection.java
+//
+// Copyright (C) 2016 Henrik Björkman (www.eit.se/hb)
+// License: www.eit.se/rsb/license
+//
+// History:
+// Created by Henrik 2015 
+
+
 package se.eit.rsb_server_pkg;
 
 import java.io.IOException;
@@ -10,11 +19,13 @@ import se.eit.web_package.*;
 
 public class ServerTcpConnection {
 
-	public DbRoot db;
+	public static final int MaxButtons=512;
+	public DbSubRoot db;
 	public WebConnection cc;
 	
 	public boolean dontUseRef;
 	public int nref;
+	public String gameTypeName;
 	
 	public static String className()
 	{	
@@ -36,7 +47,7 @@ public class ServerTcpConnection {
 	}
 	
     
-	public ServerTcpConnection(DbRoot db, WebConnection cc)
+	public ServerTcpConnection(DbSubRoot db, WebConnection cc)
 	{
 		this.db=db;
 		this.cc=cc;
@@ -85,31 +96,41 @@ public class ServerTcpConnection {
 	{
 		return cc;
 	}
+	
+	public DbSubRoot findOrCreateGameDb()
+	{		
+		DbSubRoot r  = db.findDb(WorldBase.nameOfWorldsDb);
 		
-	public DbRoot findWorldsDb()
-	{
-		return db.findDb(WorldBase.nameOfWorldsDb);
-	}
-
-	public DbRoot findPlayersDb()
-	{
-		return db.findDb(Player.nameOfPlayersDb);
+		DbSubRoot g = r.findDb(gameTypeName);
+		if (g==null)
+		{
+			g = new DbSubRoot();
+			r.lockWrite();
+			try
+			{
+				g.linkSelf(r);
+			}
+			finally
+			{
+				r.unlockWrite();
+			}
+			g.regName(gameTypeName);
+		}
+		return g;
 	}
 	
-	public DbRoot findOrCreatePlayersDb()
+	
+	public DbSubRoot findPlayersDb()
 	{
-		DbRoot playersDatabase = findPlayersDb();
-
-		if (playersDatabase==null)
-		{
-            debug("player database not found, creating it");
-            
-        	playersDatabase = new DbRoot(db, Player.nameOfPlayersDb);	    	
-        	//db.addGameObj(playersDatabase);
-   		}
-		
-		return playersDatabase;
+		return db.findDb(PlayerData.nameOfPlayersDb);
 	}
+	
+	
+	public DbSubRoot findOrCreatePlayersDb()
+	{
+		return (DbSubRoot)db.findOrCreateChildObject(PlayerData.nameOfPlayersDb, "DbNoSaveRoot");
+	}
+	
 	
 	public WorldBase findWorld(String name)
 	{		
@@ -119,15 +140,16 @@ public class ServerTcpConnection {
     		return null;
     	}
     	
-    	DbRoot worldsDatabase = findWorldsDb();
-
-		if (worldsDatabase==null)
+    	//DbSubRoot worldsDatabase = findOrCreateGameDb();
+    	DbSubRoot gamesDatabase = findOrCreateGameDb();
+    	
+		if (gamesDatabase==null)
 		{
-            error("world database not found");
+            error("games database not found");
 			return null;
 		}
     	
-		DbRoot ro = worldsDatabase.findDb(name);
+		DbSubRoot ro = gamesDatabase.findDb(name);
 		
 
 		if (ro==null)
@@ -148,29 +170,60 @@ public class ServerTcpConnection {
 		return (WorldBase)ro;				
 	}
 
+
     // To resume playing in a world the player has been playing in before.
     public String selectWorld()
     {
     	String worldName=null;
-    	debug("startNew");
     	
-    	DbRoot worldsDatabase = findWorldsDb();
+    	//DbSubRoot worldsDatabase = findOrCreateGameDb();
+    	
+    	DbSubRoot gamesDatabase = findOrCreateGameDb();
+    	
     	Object[] worldNames;
+
+    	debug("selectWorld "+gamesDatabase.getName()+" "+gamesDatabase.getNameAndPathToRoot("/"));
     	
-    	worldsDatabase.lockRead();
+    	gamesDatabase.lockRead();
     	try
     	{
-    		worldNames = worldsDatabase.getAllNamesNonRecursive();
+    		worldNames = gamesDatabase.getAllNamesNonRecursive();
     	}
     	finally
     	{
-    		worldsDatabase.unlockRead();
+    		gamesDatabase.unlockRead();
     	}
 	
-    	if ((worldNames!=null) && (worldNames.length<=16))
+    	if ((worldNames==null) || (worldNames.length<=0))
+    	{
+    		alertBox("no_worlds_available", "There are no existing worlds (you will need to start a new game to play)");
+    	}
+    	else if (worldNames.length==1)
+    	{
+			worldName = ""+worldNames[0];    		
+    	}
+    	else if (worldNames.length<=MaxButtons)
+    	{   	
+    		String[] sa = new String[worldNames.length+1];
+        	for(int i=0;i<worldNames.length;i++)
+        	{
+        		sa[i]=""+worldNames[i];
+        	}
+        	sa[worldNames.length]="cancel";
+    		final int button = promptButtons("list_enter_world_name", "choose world to continue", worldNames);
+    		if ((button>=0) && (button<worldNames.length))
+    		{
+    			worldName = ""+worldNames[button];
+    		}
+    		else
+    		{
+    			debug("client replied with cancel or unknown world name");
+    		}
+    	}
+    	/*else if (worldNames.length<=16)
     	{   		
     		worldName = promptList("list_enter_world_name", "enter name of world to continue", worldNames);    		
-    	}
+    	}*/
     	else
     	{    	
     		worldName = promptString("enter_world_name", "enter name of world to continue");
@@ -279,14 +332,19 @@ public class ServerTcpConnection {
 	{
 		try 
 		{
-			cc.writeLine("query " + question);
-			return cc.readLine(15*60*1000);
+			cc.writeLine("qp " + question);
+			return cc.readLine(15*60*1000); // 15*60*1000 is a timeout in ms.
 		} 
 		catch (InterruptedException e) 
 		{
-			e.printStackTrace();				
+			debug("directPrompt "+e);
+			//e.printStackTrace();				
 		} 
 		catch (IOException e) 
+		{
+			e.printStackTrace();
+		}
+		catch (NullPointerException e) 
 		{
 			e.printStackTrace();
 		}
@@ -294,18 +352,18 @@ public class ServerTcpConnection {
 	}
 	
 
-	// Compose a question in two parts, a specialised part and a default part.
+	// Compose a question in two parts, a specialized part and a default part.
 	// The client program shall use the tag if it has dedicated support for that particular question.
 	// If not the client shall show the defaultText to the client user and defaultTypeOfQuestion
-	private String promptTagOrDefault(String tag, String defaultText, String defaultTypeOfQuestion)
+	private String promptTagOrDefault(String tag, String defaultText, String defaultTypeOfQuestion, String options)
 	{			
 		if (dontUseRef)
 		{
-			return directPrompt(tag+" \""+defaultText+"\" "+defaultTypeOfQuestion);
+			return directPrompt(defaultTypeOfQuestion+" "+ tag+" \""+defaultText+"\" "+options);
 		}
 		else
 		{
-			return promptAndWaitRef(tag+" \""+defaultText+"\" "+defaultTypeOfQuestion);
+			return promptAndWaitRef(defaultTypeOfQuestion +" "+ tag+" \""+defaultText+"\" "+options);
 		}
 	}
 	
@@ -325,7 +383,7 @@ public class ServerTcpConnection {
 		int n=0;
 		while(++n<100)
 		{
-			String str = promptTagOrDefault(tag, defaultText, "promptString");
+			String str = promptTagOrDefault(tag, defaultText, "promptString", "");
 			
 			if (str==null)
 			{
@@ -343,11 +401,11 @@ public class ServerTcpConnection {
 			else
 			{
 				String reply=wr.readWord();
-				if (reply.equals("cancel"))
+				if ((reply.equals("cancel")) || (reply.equals("Cancel")))
 				{
 					return null;					
 				}
-				debug("Answer was not a string, it did not begin with '\"' "+str);
+				debug("Answer was not a string, it did not begin with double quotes '"+str+"'");
 			}
 		}
 		debug("to many tries");
@@ -365,9 +423,10 @@ public class ServerTcpConnection {
 	// Preferably ask only for numbers >=0 since this returns -1 if cancel.
 	public int promptInt(String tag, String defaultText, int min, int max)
 	{	
-		for(;;)
+		int n=16;
+		while(--n>=0)
 		{
-			String str = promptTagOrDefault(tag, defaultText, "promptInt");
+			String str = promptTagOrDefault(tag, defaultText, "promptInt", "");
 			
 			if (str==null)
 			{
@@ -376,15 +435,19 @@ public class ServerTcpConnection {
 			
 			//debug("promptInt \""+tag+"\" \""+defaultText+"\" \""+str+"\"");
 
+			// Remove quotes if any.
+			str = WordReader.removeQuotes(str);
+			
+			
 			WordReader wr=new WordReader(str);
 			
-			if (wr.isNextInt())
+			if (wr.isNextIntOrFloat())
 			{
-				int n=wr.readInt();
+				int i=wr.readInt();
 				
-				if ((n>=min) && (n<=max))
+				if ((i>=min) && (i<=max))
 				{
-					return n;
+					return i;
 				}
 				else
 				{
@@ -393,6 +456,11 @@ public class ServerTcpConnection {
 			}
 			else
 			{
+				String reply=wr.readWord();
+				if ((reply.equals("cancel")) || (reply.equals("Cancel")))
+				{
+					return -1;	
+				}
 				debug("Answer was not a number "+ str);
 			}
 		}
@@ -409,49 +477,156 @@ public class ServerTcpConnection {
 	// Returns
     //  the number of the chosen alternative, zero counting
 	//  -1 for timeout, cancel or error
+	// Deprecated, use "promptButtons(String tag, String defaultText, DbList<String> buttonNames)" instead.
 	public int promptButtons(String tag, String defaultText, Object buttonNames[])
+	{	
+		DbList<String> list=new DbList<String>();
+		for(int i=0; i<buttonNames.length; i++)
+		{
+			list.add(""+buttonNames[i]);
+		}
+		return promptButtons(tag, defaultText, list);		
+	}
+
+	// This will prompt client/user for a button to be chosen.
+	// multiple choice
+	// Will ask client a question to be answered with one of the given alternatives (or cancel)
+	// Parameters:
+	// * tag: see promptBox.
+	// * defaultText: see promptBox.
+	// * buttonNames: A list of alternatives to choose from. NOTE this list must be filled without gaps.
+	// Returns
+    //  the number of the chosen alternative, zero counting
+	//  -1 for timeout, cancel or error
+	public int promptButtons(String tag, String defaultText, DbList<String> buttonNames)
 	{	
 		String names="";
 		int n=0;
-		
-		for(int i=0; i<buttonNames.length; i++)
+
+		for (String s : buttonNames)
 		{
-			names+=" \""+buttonNames[i]+"\"";
-		}		
+			names+=" \""+s+"\"";			
+		}
 		
 		while(cc!=null)
 		{
-			String str = promptTagOrDefault(tag, defaultText, "buttonPrompt "+ buttonNames.length + names);
+			String str = promptTagOrDefault(tag, defaultText, "buttonPrompt", buttonNames.size() + names);
 			
-			if ((str==null) || (n++>100))
+			if ((str==null) || (n++>16))
 			{
 				break;
 			}
 						
+			// Remove quotes if any.
+			// TODO Decide if there shall be quotes here or not and disallow client to use something else. Probably a numeric answer shall be without quotes and a string answer shall be quoted.
+			str = WordReader.removeQuotes(str);
+			
 			//debug("promptButtons \""+tag+"\" \""+defaultText+"\" \""+str+"\"");
 
 			WordReader wr=new WordReader(str);
-			
-			if (wr.isNextInt())
+						
+			if (wr.isNextIntOrFloat())
 			{
+				// Client can answer with index of the list entries, this is why the list buttonNames must not have gaps.
 				return wr.readInt();
 			}
 			else
 			{
+
+				// Or client can answer with the list entry itself, this is slower but can be preferred if client is doing an auto reply. 
+				for(int i=0; i<buttonNames.getCapacity(); i++)
+				{
+					String s = buttonNames.get(i);
+					if (s==null)
+					{
+						return -1;
+					}
+					if (str.equals(s))
+					{
+						return i;
+					}
+				}
+
+				// Perhaps it was Enter or Backspace. We allow that for quick OK or Back/Cancel
+				if (str.length()==1)
+				{
+					final int ch=str.charAt(0);
+					switch(ch)
+					{
+						/*case '\r':
+						case '\n':
+							for(int i=0; i<buttonNames.getCapacity(); i++)
+							{
+								String s = buttonNames.get(i);
+								if (s.equalsIgnoreCase("OK")) 
+								{
+									return i;
+								}
+							}					
+							break;*/
+						case '+':
+							// Client sent '+'. This is OK if there was a Yes or OK alternative.
+							for(int i=0; i<buttonNames.getCapacity(); i++)
+							{
+								String s = buttonNames.get(i);
+								if (s==null)
+								{
+									return -1;
+								}
+								if (s.equalsIgnoreCase("Yes") || s.equalsIgnoreCase("OK")) 
+								{
+									return i;
+								}
+							}					
+							break;
+						case '-':
+							// Client sent '-'. This is OK if there was an No, Back or Cancel alternative.
+							for(int i=0; i<buttonNames.getCapacity(); i++)
+							{
+								String s = buttonNames.get(i);
+								if (s==null)
+								{
+									return -1;
+								}
+								if (s.equalsIgnoreCase("No") || s.equalsIgnoreCase("Back") ||  s.equalsIgnoreCase("Cancel")) 
+								{
+									return i;
+								}
+							}					
+							break;
+						/*case 127:
+						{
+							for(int i=0; i<buttonNames.getCapacity(); i++)
+							{
+								String s = buttonNames.get(i);
+								if (s.equalsIgnoreCase("Cancel") || s.equalsIgnoreCase("Back"))
+								{
+									return i;
+								}
+							}					
+							break;
+						}*/
+						default: break;
+					}
+				}
+				
+				
 				debug("Answer was not a button "+str);
+				this.alertBox("button_unknown", "can not find '"+str+"'");
 			}
 		}
 		return -1;
 	}
-
+	
 	// Similar as promptButtons but intended to be used when there can be a lot to choose from.
     // We should change so that the client answers with the number of the choice or a string. 
+	/*
 	protected String promptList(String tag, String defaultText, Object possibilities[])
 	{
-		boolean found=false;
+		int n=16;
 		String name=null;
 		
-		while(found==false)
+		while(n>0)
 		{
 			cc.writeLine("listClear");
 			for(int i=0; i<possibilities.length; i++)
@@ -467,6 +642,10 @@ public class ServerTcpConnection {
 				break;
 			}
 
+			// Remove quotes if any.
+			name = WordReader.removeQuotes(name);
+			
+			
 			if (name.equals("cancel"))
 			{
 				debug("user pressed cancel");
@@ -474,6 +653,7 @@ public class ServerTcpConnection {
 				break;
 			}
 			
+			// Client can answer with index of the list entries
 			if (WordReader.isInt(name))
 			{
 				int i = Integer.parseInt(name);
@@ -483,32 +663,86 @@ public class ServerTcpConnection {
 					name=possibilities[i].toString();
 					break;
 				}
+				else
+				{
+					name=null;
+					break;
+				}
 			}
 			
-			debug("promptList \""+tag+"\" \""+defaultText+"\" \""+name+"\"");			
+			debug("promptList tag='"+tag+"', answer='"+name+"'");			
 			
+			// Or client can answer with the list entry itself (deprecated)
 			for(int i=0; i<possibilities.length; i++)
 			{
 				if (name.equals(possibilities[i]))
 				{
-					//debug("answer matches alternative "+i);
-					found=true;
+					//debug("answer matches alternative "+i);					
+					n=0;
 				}
 			}
 
-			if (!found)
+			if (n>0)
 			{
-				debug("answer is not one of the expected");
+				debug("answer is not one of the expected: "+name);
+				this.alertBox("list_can_not_find", "can not find "+name);
 			}
 			
-			cc.writeLine("listClear");
 		}
-		
+
+		cc.writeLine("listClear");
 
 		return name;
 	}
-	
-	
+	*/
+
+	// This will prompt client/user for a keyboard button to be entered/pressed.
+	// Used to ask client for a keyboard button
+	// Parameters:
+	// * tag see promptBox.
+	// * defaultText see promptBox.
+	// The client is expected to answer with either:
+	// * a number representing the key  
+	// * cancel
+	public int promptKey(String tag, String defaultText)
+	{	
+		for(;;)
+		{
+			String str = promptTagOrDefault(tag, defaultText, "keyPrompt", "");
+			
+			if (str==null)
+			{
+				break;
+			}
+			
+
+			// Remove quotes if any.
+			str = WordReader.removeQuotes(str);
+			
+			
+			WordReader wr=new WordReader(str);
+			
+			if (wr.isNextIntOrFloat())
+			{
+				int n=wr.readInt();
+				
+				if (n>=0)
+				{
+					return n;
+				}
+				else
+				{
+					alertBox("out_of_range", "out of range");
+				}				
+			}
+			else
+			{
+				debug("Answer was not a number "+ str);
+			}
+		}
+		return -1;
+	}
+
 	
     // Send a notification to client.
 	// An answer is not expected. 
@@ -524,9 +758,11 @@ public class ServerTcpConnection {
 			//cc.writeLine("confirmBox"+" "+tag+" \""+defaultText+"\"");
 
 			// alert and confirm did not work with current web client, will use a generic button dialog instead. 
-			Object[] options = {"OK"};
+			DbList<String> optionsList=new DbList<String>();
+			optionsList.add("OK");
 			
-        	/*int r =*/ promptButtons(tag, defaultText, options);
+			
+        	/*int r =*/ promptButtons(tag, defaultText, optionsList);
 
         	/*switch(r)
         	{
@@ -543,6 +779,20 @@ public class ServerTcpConnection {
 		
 	}
 	
+	
+    // Returns 1 if Yes, something else if no.
+    public int promptNoOrYes(String NoOrYesQuestion)
+    {
+
+		DbList<String> optionsList=new DbList<String>();
+		optionsList.add("No");
+		optionsList.add("Yes");
+		
+		final int reply = promptButtons("noOrYes", NoOrYesQuestion, optionsList);
+
+		return reply;
+    }
+
 	
 	// Prompt user for a world name. Check that name is ok and not already used.
     public String enterNameForNewGame()
@@ -589,13 +839,18 @@ public class ServerTcpConnection {
     	return worldName;
     }
 	
-    public String getInfo()
+    public String getTcpInfo()
     {    	
     	if (cc!=null)
     	{
-    		return cc.getInfo();
+    		return cc.getTcpInfo();
     	}
     	return "closed";
     }
-	
+
+	public void setGameTypeName(String gameTypeName)
+	{
+		this.gameTypeName = gameTypeName;
+	}
+
 }

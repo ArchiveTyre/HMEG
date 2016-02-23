@@ -1,7 +1,8 @@
 /*
 WebConnection.java
 
-Copyright (C) 2013 Henrik Bjorkman www.eit.se/hb 
+Copyright (C) 2016 Henrik Björkman (www.eit.se/hb)
+License: www.eit.se/rsb/license
 
 Send and receive full lines of ascii strings.
 
@@ -58,6 +59,8 @@ import java.util.Date;
 import java.util.TimeZone;
 
 
+// See also Class Endpoint, perhaps we did not need to implement so much of the web socket protocol here.
+// http://docs.oracle.com/javaee/7/api/javax/websocket/Endpoint.html
 
 
 
@@ -98,7 +101,8 @@ public class WebConnection implements Runnable //extends Thread
 	protected WebSocketServer webSocketServer=null;
 	WebSocketConnection pct=null;
 	WebServer webServer=null;
-	int webServerIndex;
+	int webServerIndex=0;
+	long connectedTimeMs=0;
 	
 	protected class HandShake
 	{
@@ -433,9 +437,16 @@ public class WebConnection implements Runnable //extends Thread
 	
 	public String timeMsToString(long lm) throws ArrayIndexOutOfBoundsException
 	{
-		final String str=sdf.format(lm);
-		//debug("timeMsToString "+str);
-		return str;
+		try{
+			final String str=sdf.format(lm);
+			//debug("timeMsToString "+str);
+			return str;
+		}
+		catch (Exception e)
+		{
+			debug("timeMsToString failed with " + lm);
+		}
+		return "failed to get time & date";
 	}
 	
 	public String getNameAndPath(String httpRootDir, String filename)
@@ -609,13 +620,12 @@ public class WebConnection implements Runnable //extends Thread
 	
 	public int loadAndSendFromFileSystem(String filename)
 	{
-		//debug("loadAndSendFromFileSystem"+filename);
 
 		final String nameAndPath=getNameAndPath(httpRootDir,filename);
 	
 	    // Make file path
 	    Path path = Paths.get(nameAndPath);
-	    //debug("file "+ filename+" "+path.toAbsolutePath());
+	    debug("loadAndSendFromFileSystem '"+ filename+"' "+path.toAbsolutePath());
 
 	    
 	    // If it is a directory, perhaps we shall send the index.html file instead?
@@ -627,7 +637,7 @@ public class WebConnection implements Runnable //extends Thread
 	    	if ((indexFile.toFile().exists()) && (indexFile.toFile().canRead()))
 	    	{
 	    		path = indexFile;
-			    //debug("Remapped to '"+path.toAbsolutePath()+"'");
+			    debug("Remapped to '"+path.toAbsolutePath()+"'");
 	    	}
 	    }
 	    
@@ -758,7 +768,7 @@ public class WebConnection implements Runnable //extends Thread
 			}
 			else if (hs.upgrade.equals("websocket"))
 			{
-				debug("sending reply websocket upgrade "+webServerIndex+" "+this.getInfo());
+				debug("sending reply websocket upgrade "+webServerIndex+" "+this.getTcpInfo());
 				println("HTTP/1.1 101 Switching Protocols");
 				println("Upgrade: websocket");
 				println("Connection: Upgrade");
@@ -841,7 +851,7 @@ public class WebConnection implements Runnable //extends Thread
 	  this.webSocketServer=webSocketServer;
 	  this.webServer=webServer;
 	  this.webServerIndex=webServerIndex;
-
+	  this.connectedTimeMs=System.currentTimeMillis();
 	  
 	  //debug("test "+ getFilenameWithoutAbsoluterUrl("http://www.somehost.com/path/file.html"));
 	  
@@ -867,6 +877,7 @@ public class WebConnection implements Runnable //extends Thread
 	
 	
 	// Make a connection to server. This is used by clients.
+	// This is currently only used by our out dated native java client. But the plan is that servers shall connect to a master server. Then this may needed more.
 	public WebConnection(String hostname, int port, MyBlockingQueue<String> myBlockingQueue)
 	{
 		this.myBlockingQueue=myBlockingQueue;
@@ -908,7 +919,7 @@ public class WebConnection implements Runnable //extends Thread
 	
 	private void handleReceivedHandShake(String str)	
 	{
-		//debug("handleReceivedHandShake: "+str);
+		debug("handleReceivedHandShake: "+str);
 		String cmd=getFirstWord(str);
 		
 		if (cmd.equals("Host:"))
@@ -1001,6 +1012,17 @@ public class WebConnection implements Runnable //extends Thread
 			// This was normal data, put it in the queue
 			myBlockingQueue.put(new String(rcv.buf));
 		}
+		else if (rcv.opCode==9)
+		{
+			// This was ping from client, we should reply with pong
+            // https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_servers
+            // Pings and Pongs: The Heartbeat of WebSockets
+			writeWebSocketLine(new String(rcv.buf),0xA); //TODO Perhaps writeWebSocketLine should be changed to take byte[] as input so we dont need to convert to string here.
+		}
+		else if (rcv.opCode==0xA)
+		{
+			// This was pong from client, just ignore
+		}
 		else
 		{
 			error("opCode "+rcv.opCode+" is not supported");
@@ -1047,46 +1069,55 @@ public class WebConnection implements Runnable //extends Thread
 	    {
 			while (socket!=null)
 			{
+				// Reading just one character at a time. 
+				// TODO: we might need to optimize this. Read a buffer of available characters and then evaluate them.
 	            final int ch=in.read();
-	
+		            
 	            if (ch<0)
 	            {
 	            	throw new IOException("connection lost, in.read() gave "+ch);
 	            }
+	
+	            // Logging this will result in very much logging, but useful in some rare cases like writing a new client.
+				//debug("ch "+ch);
 	            
+	            // main state machine of the connection
 				switch(inputState)
 				{
 					case INITIAL:
 					{
+						// Receive character by character until there is a line feed (LF).
 						if (ch=='\n')
 			            {
+							// We have a complete line (it ended with line feed)
 							String str=lineBeingReceived.toString();
 							String cmd=getFirstWord(str);
-							debug("initial "+str);
 							
 							if (cmd.equals("GET"))
 							{
 								// example: GET /path/to/file/index.html HTTP/1.1
-								//debug("looks like WebSocket or HTTP");
+								debug("INITIAL: GET: looks like WebSocket or HTTP, "+webServerIndex+", '"+this.getTcpInfo()+"'");
 								hs.get=skipWords(str,1);
 								inputState=WEB_SOCKET_HANDSHAKE;
 							}
 							else if (cmd.equals("HEAD"))
 							{
 								// example: HEAD /path/to/file/index.html HTTP/1.1
-								debug("looks like WebSocket or HTTP");
+								debug("INITIAL: HEAD: looks like WebSocket or HTTP, "+webServerIndex+", '"+this.getTcpInfo()+"'");
 								hs.head=skipWords(str,1);
 								inputState=WEB_SOCKET_HANDSHAKE;
 							}
 							else if ((cmd.equals("POST:")) || (cmd.equals("PUT:")) || (cmd.equals("DELETE:")) || (cmd.equals("OPTIONS:")) || (cmd.equals("TRACE:")))
 							{
+								debug("INITIAL: '"+str+"'");
+								
 								hs.post=skipWords(str,1);
 							}
 							else
 							{
-								// probably plain tcp/ip from our java client.
+								// probably plain TCP/IP from our native clients.
 								// Dont't expect HTTP header or web socket.
-								debug("plain tcp/ip "+webServerIndex+" "+this.getInfo());
+								debug("INITIAL: plain tcp/ip, "+webServerIndex+", '"+this.getTcpInfo()+"'");
 
 								createPlayerConnectionThread();
 
@@ -1098,27 +1129,37 @@ public class WebConnection implements Runnable //extends Thread
 			            else if (ch=='\r')
 			            {
 			            	// just ignore all carriage return
+			            	debug("INITIAL: ignored carriage return");
 			            }
 			            else
 			            {
+							// We don't have a complete line yet, append to the one we are receiving.
 			            	lineBeingReceived.append((char)ch);
 			            }
 			            break;												
 					}
 					case LINE_INPUT:
 					{
+						// In this state we receive characters until we have a line, not using WebSockets. Lines are ended with LF.  
 						if (ch=='\n')
 			            {
-		            	    //debug("LINE_INPUT: "+lineBeingReceived);           	              	  
+							// We have a complete line (it ended with line feed)
+							// Put it in the receive queue.
+							
+		            	    // Logging here may be to much in normal operation but useful sometimes.
+		            	    //debug("LINE_INPUT: "+lineBeingReceived);
+		            	    
 		            	    myBlockingQueue.put(lineBeingReceived.toString());
 		            	    lineBeingReceived = new StringBuffer();
 			            }
 			            else if (ch=='\r')
 			            {
 			            	// just ignore all carriage return
+			            	debug("LINE_INPUT: ignored carriage return");
 			            }
 			            else
 			            {
+							// We don't have a complete line yet, append to the one we are receiving.
 			            	lineBeingReceived.append((char)ch);
 			            }
 			            break;
@@ -1128,7 +1169,8 @@ public class WebConnection implements Runnable //extends Thread
 						// Receive character by character until there is an LF.
 			            if (ch=='\n')
 			            {
-			            	// An LF has been received, process the received line
+							// We have a complete line (it ended with line feed)
+			            	// Process the received line
 	
 			            	if (lineBeingReceived.length()>0)
 		            	    {
@@ -1149,6 +1191,7 @@ public class WebConnection implements Runnable //extends Thread
 			            else if (ch=='\r')
 			            {
 			            	// just ignore all carriage return
+			            	debug("WEB_SOCKET_HANDSHAKE: ignored carriage return");
 			            }
 			            else
 			            {
@@ -1187,11 +1230,11 @@ public class WebConnection implements Runnable //extends Thread
 			            {
 		            		error("not implemented finalFragment "+finalFragment);				            	
 			            }
-	
-			            if ((rcv.opCode!=1) && (rcv.opCode!=8))
+				            
+			            /*if ((rcv.opCode!=1) && (rcv.opCode!=8))
 			            {
-		            		error("opCode " + rcv.opCode + " is not implemented");				            	
-			            }
+		            		debug("opCode " + rcv.opCode + " is not implemented");				            	
+			            }*/
 		            			            	
 			            rcv.n=0;
 	
@@ -1220,7 +1263,7 @@ public class WebConnection implements Runnable //extends Thread
 						rcv.n++;
 						if (rcv.n>=2)
 						{	
-							debug("rcv.len " + rcv.len);
+							//debug("rcv.len " + rcv.len);
 	            			nextStateAfterLen();		            			
 						}
 						break;
@@ -1510,7 +1553,7 @@ public class WebConnection implements Runnable //extends Thread
 		{
 			final int finalFragment=1;
 		    /*final*/ int maskPresent=0; // This is supposed to be 1 but that did not work for some unknown reason.
-			final int payLoadLen=str.length();
+			final long payLoadLen=str.length();
 			final int r=random.nextInt();
 			
 			int[] mask= {(r>>24)&0xff,(r>>16)&0xff,(r>>8)&0xff,(r>>0)&0xff}; 
@@ -1519,7 +1562,7 @@ public class WebConnection implements Runnable //extends Thread
 			
 			final int hdr1=(finalFragment<<7) | (opCode&0xF);
 			int hdr2=(maskPresent<<7);
-			int bufLen=payLoadLen+2+((maskPresent!=0)?4:0);
+			long bufLen=payLoadLen+2+((maskPresent!=0)?4:0);
 	
 			
 			if (payLoadLen<126)
@@ -1528,12 +1571,18 @@ public class WebConnection implements Runnable //extends Thread
 			}
 			else if (payLoadLen>0xFFFF)
 			{
-				error("payLoadLen " + payLoadLen + " not implemented yet");
-				return;    			
+				// See https://tools.ietf.org/html/rfc6455 page 31
+
+				hdr2|=127;  // 127 = 0x7F    frame-payload-length-63
+	    		bufLen+=8;			
+				if (bufLen>0x7FFFFFFF)
+				{
+					error("Larger than 0x7FFFFFFF will not work with 'new byte(bufLen)'");
+				}
 			}
 			else
 			{
-	    		hdr2|=126;
+	    		hdr2|=126;  // 126 = 0x7E    frame-payload-length-16
 	    		bufLen+=2;
 			}
 			
@@ -1541,13 +1590,25 @@ public class WebConnection implements Runnable //extends Thread
 			//debug("hdr1 "+hdr1);
 			//debug("hdr2 "+hdr2);
 			
-			byte[] buf=new byte[bufLen];
+		
+			byte[] buf=new byte[(int)bufLen];
 			int n=0;
 			
 			buf[n++]=(byte)hdr1;
 			buf[n++]=(byte)hdr2;
 			
-			if (payLoadLen>=126)
+			if (payLoadLen>0xFFFF)
+			{
+				buf[n++]=(byte)((payLoadLen>>56)&0xFF);
+				buf[n++]=(byte)((payLoadLen>>48)&0xFF);
+				buf[n++]=(byte)((payLoadLen>>40)&0xFF);
+				buf[n++]=(byte)((payLoadLen>>32)&0xFF);
+				buf[n++]=(byte)((payLoadLen>>24)&0xFF);
+				buf[n++]=(byte)((payLoadLen>>16)&0xFF);
+				buf[n++]=(byte)((payLoadLen>>8)&0xFF);
+				buf[n++]=(byte)(payLoadLen&0xFF);				
+			}
+			else if (payLoadLen>=126)
 			{
 				buf[n++]=(byte)((payLoadLen>>8)&0xFF);
 				buf[n++]=(byte)(payLoadLen&0xFF);				
@@ -1602,15 +1663,8 @@ public class WebConnection implements Runnable //extends Thread
 	}
 	
 	
-	// deprecated
-	/*
-	private synchronized void println(String str)
-	{
-		writeLine(str);
-	}
-	*/
 	
-	public synchronized String getInfo()
+	public synchronized String getTcpInfo()
 	{
 		if (socket!=null)
 		{
@@ -1627,6 +1681,13 @@ public class WebConnection implements Runnable //extends Thread
 	
 	public synchronized void close()
 	{
+		// TODO: 
+		// If this was a web socket, send close message to clients websocket
+		// According to the protocol spec v76 (which is the version that browser with current support implement):
+		// To close the connection cleanly, a frame consisting of just a 0xFF byte followed by a 0x00 byte is sent from one peer to ask that the other peer close the connection.
+		// Or is the above out dated so it no longer needed?
+		
+		
 		if (out!=null)
 		{
 			flush();
@@ -1640,6 +1701,7 @@ public class WebConnection implements Runnable //extends Thread
 		
 		try 
 		{
+		   // tell PlayerConnectionThread that we closed.
 		   if (pct!=null)
 		   {
 			   // PlayerConnectionThread will probably also call close so to avoid eternal recursion set pct to null before calling close.
@@ -1665,6 +1727,7 @@ public class WebConnection implements Runnable //extends Thread
 		     socket=null;
 		   }
 		   
+		   // Tell webServer that we have closed
 		   if (webServer!=null)
 		   {
 			   // WebServer will probably also call close so to avoid eternal recursion set webServer to null before calling close.
@@ -1701,8 +1764,10 @@ public class WebConnection implements Runnable //extends Thread
 	
 	
 	
-	
-	
+	public String getConnectionTime()
+	{
+		return timeMsToString(connectedTimeMs);
+	}
 	
 	
 	

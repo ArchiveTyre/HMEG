@@ -1,7 +1,8 @@
 /*
 WordReader.java
 
-Copyright 2013 Henrik Björkman (www.eit.se/hb)
+Copyright (C) 2016 Henrik Björkman (www.eit.se/hb)
+License: www.eit.se/rsb/license
 
 These are some methods for parsing strings.
 
@@ -10,27 +11,22 @@ History:
 2013-02-27
 Created by Henrik Bjorkman (www.eit.se/hb)
 
+2016-01-01 
+Cleanup by Henrik Bjorkman (www.eit.se/hb)
+
 */
 
 package se.eit.web_package;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
 
 
 // 
 public class WordWriter {
 
 	public static final String BEGIN_MARK="{";
-	static final String END_MARK="}";
+	public static final String END_MARK="}";
 	
 	int max_packet_size=10000;
 	
-	// TODO: We should use a base class and one extending class for each of these possible sources, instead of 4 references here of which we use only one at a time.
-	WebConnection cc=null;
-	OutputStream os = null;	 // http://docs.oracle.com/javase/6/docs/api/java/io/OutputStream.html
-	PrintWriter pw = null; // http://docs.oracle.com/javase/6/docs/api/java/io/PrintWriter.html
 	StringBuffer sb = null;
 
 	// Using StringBuffer but perhaps we should use StringBuilder for faster code?
@@ -40,7 +36,12 @@ public class WordWriter {
 	//public long visibilityMask = -1;
 	int indent=0;
     boolean indentNeeded=false;
+    boolean eolnNeeded=false;
+    public boolean needSpace=false;
+    public String spaceString=" ";
 
+    public String indentString="\t";
+    
     // This was added as a workaround. When TcpConnection is in web socket mode then we should send lines one by one.
     // When this has been sorted out this variable shall be removed.
     //boolean flushAfterLf=false;
@@ -114,28 +115,14 @@ public class WordWriter {
 	}
 	
 	
-	public WordWriter(WebConnection cc)
-	{
-		//cc.rwl.writeLock().lock();
-	   this.cc=cc;
-	}
 	
-	public WordWriter(OutputStream os)
-	{		
-		this.os = os;
-	}
-	
-	public WordWriter(PrintWriter pw)
-	{		
-		this.pw=pw;
-	}
 
 	public WordWriter(StringBuffer sb)
 	{		
 		this.sb=sb;
 	}
 
-	// With this constructor the data is stored in an internal StringBuffer and can be retrieved by calling "getString"
+	// With this constructor the data written is stored in an internal StringBuffer and can be retrieved by calling "getString"
 	public WordWriter()
 	{
 		this.sb=new StringBuffer();
@@ -179,7 +166,7 @@ public class WordWriter {
 	public void writeWord(String str)
 	{
 		writeIndentation();
-	
+
 		if (str==null)
 		{
 			debug("writeWord null");
@@ -188,25 +175,19 @@ public class WordWriter {
 		else if (!WordWriter.isOneWord(str))
 		{
 			// When writing strings the method writeString shall be used, it will replace space with an escape sequence. 
-			debug("string with space sent using writeWord "+str);
+			debug("string with space sent using writeWord '"+str+"'");
 		}
-		tmpBuf.append(str);		
-		tmpBuf.append(" ");
+		tmpBuf.append(str);	
+		needSpace=true;
 		sendIfLonger(max_packet_size);
 	}
 
 	
 	public void writeEoln()
 	{
-		if ((cc!=null) && (cc.isWebSocket()))
-		{
-			sendIfLonger(0);
-		}
-		else
-		{
-			tmpBuf.append("\n");
-			sendIfLonger(max_packet_size);			
-		}
+		tmpBuf.append("\n");
+		needSpace=false;
+		sendIfLonger(max_packet_size);			
 		indentNeeded=true;	
 	}
 	
@@ -241,30 +222,65 @@ public class WordWriter {
 			for(int i=0;i<str.length();i++)
 			{
 				final char ch=str.charAt(i);
-				if ((ch=='"') || (ch=='\\'))
+				switch(ch)
 				{
-					sb.append("\\");
+					case '"':
+					{
+						sb.append("\\\"");
+						break;
+					}
+					case '\\':
+					{
+						sb.append("\\\\");
+						break;
+					}
+					case '\n':
+					{
+						sb.append("\\n");						
+						break;
+					}
+					case '\r':
+					{
+						sb.append("\\r");						
+						break;
+					}
+					default:
+					{
+						sb.append(ch);
+						break;
+					}
 				}
-				sb.append(ch);
 			}
 		}
 	}
 
-	
+	// This writes the string quoted.
 	// When using writeWord the string shall not contain spaces etc since then readWorld in WordReader will not be able to read it back.
 	// If there are spaces then writeString/readString shall be used instead.
 	public void writeString(String str)
 	{
 		writeIndentation();
-		
+
 		tmpBuf.append("\"");
 		copyAndAddEscSequence(str, tmpBuf);
 		
-		tmpBuf.append("\" ");
+		tmpBuf.append("\"");
+		needSpace=true;
 		sendIfLonger(max_packet_size);
 	}
 
-	
+	// This is different to writeString in that this writes the string unquoted and does not add esc characters.
+	// Comented out since this is not yet used.
+	/*
+	public void writeRawString(String str)
+	{
+		writeIndentation();
+		tmpBuf.append(str);	
+		needSpace=true;
+		sendIfLonger(max_packet_size);
+	}
+	*/
+
     
     // gives true if string is made up of letters, digits and/or allowedChars
     public static boolean isStringOk(String str, String allowedChars, int minLength)
@@ -291,6 +307,13 @@ public class WordWriter {
 	    		debug("some characters in the string are not allowed, letters, digits and "+allowedChars+" are allowed");	    		
 		    	return false;
 	    	}
+	    }
+	    
+	    // Some other reserved words
+	    // TODO: when a null is written write _null or something which is a reserved name so players can't name things "_null", read word can make _null to null pointer, then "null" can be allowed
+	    if (str.equals("null"))
+	    {
+	    	return false;
 	    }
 	  
 	    return true;
@@ -334,7 +357,13 @@ public class WordWriter {
 				System.out.println("Characters '\"' and '/' are reserved for internal use");
 				return false;
 			}
-					
+			
+			// We do not allow _ since that is reserved for internal names
+			if (ch=='_')
+			{
+				return false;
+			}
+			
 			// we will require that the first character is a letter.
 			if (!Character.isLetter(ch))
 			{
@@ -501,24 +530,28 @@ public class WordWriter {
 	{
 		writeWord(""+f);
 	}
-	
+
+	// This writes a '{' to the stream and increment indentation,
 	public void writeBegin()
 	{
 		indentNeeded=true;
+		eolnNeeded=true;
 		writeIndentation();
 		tmpBuf.append(BEGIN_MARK+" ");
 		sendIfLonger(max_packet_size);
 		indentNeeded=true;
-		indent++;
+		incIndentation();
 	}
 
+	// This writes a '}' to the stream and decrement indentation,
 	public void writeEnd()
 	{
-		indent--;
+		decIndentation();
 		indentNeeded=true;
 		writeIndentation();
 		tmpBuf.append(END_MARK+" ");
 		indentNeeded=true;
+		eolnNeeded=true;
 		sendIfLonger(max_packet_size);
 	}
 	
@@ -540,56 +573,40 @@ public class WordWriter {
 	{		
 		if (indentNeeded)
 		{
-			writeEoln();
+			if (eolnNeeded)
+			{
+				writeEoln();
+			}
 			for (int i=0;i<indent;i++)
 			{
-				tmpBuf.append("\t");
+				tmpBuf.append(indentString);
 			}
 			indentNeeded=false;			
 		}
+
+		if (needSpace)
+		{
+			tmpBuf.append(spaceString);			
+			needSpace=false;
+		}
 	}
 	
-	private void sendIfLonger(int limit)
+	protected void sendIt(String str)
+	{
+		if (sb!=null)
+		{
+			sb.append(str);			
+		}
+	}
+	
+	protected void sendIfLonger(int limit)
 	{
 		int strLen = tmpBuf.length(); 
 		if (strLen>limit)
 		{
 			//debug("sending \""+tmpBuf.toString()+"\"");
-			if (cc!=null)
-			{
-				//cc.writeLine(tmpBuf.toString());
-				//tmpBuf.append(" ");
-				final String str=tmpBuf.toString();
-				cc.write(str);
-				//cc.flush();
-			}
-			if (pw!=null)
-			{
-				//pw.println(tmpBuf.toString());
-				pw.print(tmpBuf.toString()+" ");
-			}
-			if (os!=null)
-			{			
-				byte[] b= new byte[strLen+1];
-	
-			    // Only ascii here, unicode not supported yet
-			    for (int i=0; i<strLen; i++)
-			    {
-			    	b[i]=(byte) tmpBuf.charAt(i);
-			    }
-			    b[strLen]='\n';
-
-				try {
-					os.write(b);
-				} catch (IOException e) {
-					e.printStackTrace();
-					os=null;
-				}
-			}
-			if (sb!=null)
-			{
-				sb.append(tmpBuf.toString());			
-			}
+			final String str=tmpBuf.toString();
+			sendIt(str);
 			tmpBuf=new StringBuffer(1400);
 		}
 		
@@ -603,29 +620,7 @@ public class WordWriter {
 	public void close()
 	{
 		flush();
-		tmpBuf=null;
-
-		if (cc!=null)
-		{
-			//cc.rwl.writeLock().unlock();
-			cc=null;
-		}
-
-		if (pw!=null)
-		{
-			pw.close();
-			pw=null;
-		}
-		
-		if (os!=null)
-		{
-			try {
-				os.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			os=null;
-		}
+		tmpBuf=null;		
 	}
 	
 	
@@ -670,4 +665,20 @@ public class WordWriter {
 	{
 		flushAfterLf=true;
 	}*/
+
+	public void writeBoolean(boolean i)
+	{
+		writeWord((i==false)?"0":"1");
+	}
+
+	public void incIndentation()
+	{
+		indent++;
+	}
+
+	public void decIndentation()
+	{
+		indent--;
+	}
+
 }

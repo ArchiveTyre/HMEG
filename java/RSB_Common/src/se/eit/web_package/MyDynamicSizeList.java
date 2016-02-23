@@ -1,7 +1,8 @@
 /*
 MyDynamicSizeList.java
 
-Copyright (C) 2013 Henrik Bjorkman www.eit.se/hb
+Copyright (C) 2016 Henrik Björkman (www.eit.se/hb)
+License: www.eit.se/rsb/license
 
 This implements a hopefully thread safe queue.
 An added feature is that the caller can give a timeout time when retrieving data from the queue. 

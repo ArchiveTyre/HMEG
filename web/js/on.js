@@ -68,7 +68,102 @@ function onMessage(evt)
 
 	// Here we check what server want client program to do.
 	// Commands sent by ConnectionThread need to be interpreted here.
-	if (cmd=="query")
+	if (cmd=="qp")
+	{
+		typeOfQuestion=arg[1];
+		tag=arg[2];
+		defaultText=arg[3];
+
+		console.log('cmd='+ cmd+ ', tag=' + tag + ', defaultText=' + defaultText);
+
+
+		// Server will expect the number of the button as reply.
+		if (typeOfQuestion=="buttonPrompt")
+		{
+			// Format for this querry is:
+			// query buttonPrompt <tag> <heading text> <number of buttons> "<button names>" ...
+			// vi ska fråga efter "button" men tills vidare...
+
+			// auto answer some questions
+			if (tag=="2d_or_3d_support") // This is deprecated, replaced by "game_support"
+			{
+				doSend("2d");
+			}
+			else
+			{
+				var alt='buttons: ';
+				var n=arg[4];
+				var i=0;
+				for (i=0;i<n;i++)
+				{
+					// console.log('button '+n+' '+i+' '+arg[5+i]);
+					alt=alt+'\n '+i+' '+arg[5+i];
+				}
+
+				// Commented out here is one way to do it. But it don't look good.
+				//reply=prompt(arg[2]+'\n'+alt, 'reply with button number here (not name)');
+				//doSend(reply);	
+		
+				doButtonQuery(defaultText, arg.slice(5,4+n));
+			}
+
+		}
+		else if (typeOfQuestion=="promptString")
+		{
+			// Format for this querry is:
+			// query <tag> <heading> promptString
+
+			// Commented out here is one way to do it. But it don't look good.
+				//reply=prompt(arg[2], 'reply with a string here');
+			//reply='"'+reply+'"';
+			//doSend(reply);
+
+			if (tag=="enter_player_pw")
+			{
+				// Format for this querry is:
+				// query enter_player_pw <heading> promptString
+
+				doPwQuery(defaultText);
+			}
+			else if (tag=="enter_player_name")
+			{
+				doNameQuery(defaultText);
+			}
+			else if (tag=="game_support")
+			{
+				// See method PlayerConnectionThread.serverFactory in server for available games.
+				// List here all games that this client can handle (it can be more than one separated by space, inside the quotes)
+				doSend('"hmeg"'); // This should match those existing in servers serverFactory.  
+			}
+			else
+			{
+				doTextQuery(defaultText);
+			}
+		}
+		else if (typeOfQuestion=="promptInt")
+		{
+			// Format for this querry is:
+			// query <tag> <heading> promptString
+
+			// Commented out here is one way to do it. But it don't look good.
+				//reply=prompt(defaultText, 'reply with a string here');
+			//reply='"'+reply+'"';
+			//doSend(reply);
+
+			doIntQuery(defaultText);
+		}
+		else if (typeOfQuestion=="listPrompt")
+		{
+			console.log("listPrompt??? "+ defaultText);
+			doListQuery(defaultText);
+		}
+		else
+ 		{
+				reply=prompt(defaultText+' '+tag, '');	
+			doSend(reply);	
+		}
+	}
+	else if (cmd=="query")
 	{
 		// Server will expect the number of the button as reply.
 		if (arg[3]=="buttonPrompt")
@@ -157,7 +252,7 @@ function onMessage(evt)
 	else if (cmd==expectedServer)
 	{
 		// This is the identification message from RSB server.
-      		// It will expect client to identify itself. 
+		// It will expect client to identify itself. 
 		// This is done to avoid connecting with someting compleately different.
 		doSend(clientVersion);
 	}
@@ -170,7 +265,7 @@ function onMessage(evt)
 	{
 		chatRoomOpen('chat room');
 	}
-	else if (cmd=="openCityPvp")
+	else if (cmd=="openCityPvp") // This is deprecated use openGame CityPvp instead
 	{
 		cityPvpOpen('CityPvp');
 	}
@@ -189,10 +284,31 @@ function onMessage(evt)
 		// This will draw the main empire window
 		empireOpen(arg[1]);
 	}
-	else if (cmd=="openHmeg")
+	else if (cmd=="openHmeg") // This is deprecated use openGame hmeg instead
 	{
 		// This will draw the main HMEG window
 		hmegOpen(arg[1]);
+	}
+	else if (cmd=="openGame")
+	{
+		var game=arg[1];
+		
+		console.log("openGame: "+game);
+		
+		if (game=="CityPvp")
+		{
+			cityPvpOpen('CityPvp');
+		}
+		else if (game=="hmeg")
+		{
+			// This will draw the main HMEG window
+			hmegOpen(arg[2]);
+		}
+		else
+		{
+			console.log("unknown game " + game);
+			doError("unknown game: '" + game+"'");
+		}
 	}
 	else
 	{

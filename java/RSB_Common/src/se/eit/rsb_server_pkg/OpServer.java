@@ -1,13 +1,18 @@
+// OpServer.java
+//
+// Copyright (C) 2016 Henrik Björkman (www.eit.se/hb)
+// License: www.eit.se/rsb/license
+//
+// History:
+// Created by Henrik 2015 
+
 package se.eit.rsb_server_pkg;
 
 import java.io.IOException;
 
 import se.eit.db_package.DbBase;
-//import se.eit.empire_package.EmpireState;
-//import se.eit.empire_package.EmpireWorld;
-import se.eit.rsb_srv_main_pkg.GlobalConfig;
-import se.eit.rsb_package.Player;
 import se.eit.rsb_package.WorldBase;
+import se.eit.rsb_server_pkg.MirrorServer;
 import se.eit.web_package.WordReader;
 import se.eit.web_package.WordWriter;
 
@@ -16,23 +21,10 @@ public abstract class OpServer extends MirrorServer {
 	protected DbBase defaultObj;
 
 	
-	public OpServer(GlobalConfig config, Player player, ServerTcpConnection stc) {
-		super(config, player, stc);
+	public OpServer() {
+		super();
 	}
 
-	/*
-	@Override
-	protected void join(DbBase bo) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	protected String createAndStore(String worldName) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-*/
 
 	
 	public void writeLine(String str) throws IOException
@@ -40,17 +32,30 @@ public abstract class OpServer extends MirrorServer {
 		// The message can be sent directly to a console.
 		// Or indirectly by posting a message to the state that the player has.
 
-		// To console:
-		stc.writeLine("empConsoleAppend \""+str+"\"");
+		if (str.length()>0)
+		{
+			debug(str);
+		}
 		
+		WordWriter ww=new WordWriter();
+		
+		ww.writeWord("consoleMessage");
+		ww.writeString(str);
+		
+		// To console:
+		String m=ww.getString();
+		stc.writeLine(m); 
+		
+
 		// To state messages:
 		//postMessage(str);
 	}
 
-	protected void unknownCommand(String cmd) throws IOException
+	
+	protected void unknownCommand(String cmd, WordWriter ww) throws IOException
 	{	
-		writeLine("unknown command '"+cmd+"', ");						
-		writeLine("try help");
+		ww.writeLine("unknown command '"+cmd+"', ");						
+		ww.writeLine("try help");
 	}
 	
 	protected boolean isAdmin()
@@ -86,91 +91,162 @@ public abstract class OpServer extends MirrorServer {
 	}
 
 	
-	protected void typicalHelpPath(String cmd, String msg) throws IOException
+	protected void typicalHelpPath(String cmd, String msg, WordWriter ww) throws IOException
 	{
-		writeLine(msg);							
-		writeLine("Usage: "+cmd+" <pathOrName>");
-		writeLine("  Where <pathOrName> is an object name, index number, object id or combinations of those.");							
-		writeLine("  Object IDs are a number prefixed by ~");		
-		writeLine("  A path can look like: /0/city");
+		ww.writeLine(msg);							
+		ww.writeLine("Usage:");
+		ww.writeLine("  "+cmd+" <pathOrName>");
+		ww.writeLine("");
+		ww.writeLine("  Where:");
+		ww.writeLine("    <pathOrName> is an object name, index number, ");
+		ww.writeLine("                 object id or combinations of those.");							
+		ww.writeLine("                 Object IDs are a number prefixed by ~");		
+		ww.writeLine("                 A path can look like: /0/city");
 	}
 	
-	// Returns true if the command was found and help given.
-	protected boolean helpCommand(String cmd) throws IOException
+	
+	protected boolean helpCommand(String cmd, WordReader wr, WordWriter ww, String hist) throws IOException
 	{
-		if (cmd==null)
+		if ((cmd==null) || (cmd.length()==0))
 		{
 			if (isAdmin())
 			{
-				writeLine("Additional commands for op:");
-				writeLine("  cat, cd, deop, go, id, ls, mute, op, pause, pwd, set, setPw, stat, ts");
+				ww.writeLine("Op/admin commands:");
+				ww.incIndentation();
+				ww.writeLine("cat : Gives detailed information about an object");
+				ww.writeLine("cd : Change the default object");
+				ww.writeLine("cmd : Send a command to an object");
+				ww.writeLine("deop : Remove player from ops list");
+				ww.writeLine("get : Get some information about an object");
+				ww.writeLine("go : Start the game or change the game speed");
+				ww.writeLine("ls : List child objects");
+				ww.writeLine("mute : mute a player");
+				ww.writeLine("op : Add player to ops list");
+				ww.writeLine("pause : pause the game (use go to start again)");
+				ww.writeLine("pwd : Print working default object");
+				ww.writeLine("set : Change the value of some property of an object");
+				ww.writeLine("setSrvPw: Set password needed for joining ");
+				ww.writeLine("stat : Show some general information about an object");
+				ww.writeLine("");
+				if (hist!=null)
+				{
+					ww.writeLine("For more help about a command try:");
+					ww.writeLine("  "+hist+" <command>");
+					ww.writeLine("Example:");
+					ww.writeLine("  "+hist+" op");
+				}
+				ww.decIndentation();
+			}
+			else
+			{
+				//ww.writeLine("you need to be admin (alias op) to use sc (alias op) commands");
 			}
 		}
 		else if (cmd.equals("cd"))
 		{
-			typicalHelpPath(cmd, "Changes the default object");
+			typicalHelpPath("cd", "Changes the default object", ww);
 		}
 		else if (cmd.equals("cat"))
 		{
-			typicalHelpPath(cmd, "Gives detailed information about an object");
+			typicalHelpPath("cat", "Gives detailed information about an object", ww);
+		}
+		else if (cmd.equals("cmd"))
+		{
+			ww.writeLine("Sends a command to an object");					
+			ww.writeLine("For example: cmd ~81 say hello");
+			ww.writeLine("Will make object ~81 say hello");
+			
 		}
 		else if (cmd.equals("dump"))
 		{
-			typicalHelpPath(cmd, "Gives detailed information about an object in a short form");
+			typicalHelpPath("dump", "Gives detailed information about an object in a short form", ww);
 		}
 		else if (cmd.equals("deop"))
 		{
-			writeLine("Remove players from the list of game administrators.");
+			ww.writeLine("Remove players from the list of game administrators.");
+		}
+		else if (cmd.equals("get"))
+		{
+			ww.writeLine("Get the value of some property of an object.");							
+			ww.writeLine("Usage: get <nameOrPath> <nameOfProperty>");							
+			ww.writeLine("");
+			ww.writeLine("Use the cat command to see which properties");
+			ww.writeLine("an object has and the current values.");							
+			ww.writeLine("See also set command.");	
+			ww.writeLine("");
+			ww.writeLine("Only op can use this command.");	
 		}
 		else if (cmd.equals("ls"))
 		{
-			typicalHelpPath(cmd, "List all objects stored inside/under the given object");
+			typicalHelpPath("ls", "List all objects stored inside/under the given object", ww);
 		}
 		else if (cmd.equals("op"))
 		{
-			typicalHelpPath(cmd, "Add a player to the list of game ops/administrators. Only ops can issue this command. To see the op list try: cat /");
+			ww.writeLine("Add a player to the list of game ops/administrators.");					
+			ww.writeLine("Only ops can issue this command.");
+			ww.writeLine("To see the op list try:");
+			ww.writeLine("  cat /");
+			ww.writeLine("or:");
+			ww.writeLine("  get / ops");
+			ww.writeLine("");
+			typicalHelpPath("op", "", ww);
 		}
-		else if (cmd.equals("setPw"))
+		else if (cmd.equals("setSrvPw"))
 		{
-			writeLine("Make the game private. Players must enter the password before they can get a place in the game.");					
+			ww.writeLine("Make the game private. Players must enter the ");
+			ww.writeLine("password before they can get a place in the game.");					
 		}
 		else if (cmd.equals("pwd"))
 		{
-			writeLine("Shows which object is the current default object.");					
-			writeLine("Many other commands can use the current object by using a '.'");	
-			writeLine("Example: cat .");	
+			ww.writeLine("Shows which object is the current default object.");					
+			ww.writeLine("Many other commands can use the current object by using a '.'");	
+			ww.writeLine("Example: cat .");	
 		}
 		else if (cmd.equals("set"))
 		{
-			writeLine("Change the value of some property of an object.");							
-			writeLine("Usage: set <nameOrPath> <nameOfProperty> <value>");							
-			writeLine("Use the cat command to see which poroperties an object has and the current values.");							
-			writeLine("Only op can use this command.");	
+			ww.writeLine("Change the value of some property of an object.");							
+			ww.writeLine("Usage: set <nameOrPath> <nameOfProperty> <value>");							
+			ww.writeLine("");
+			ww.writeLine("Use the cat command to see which properties");
+			ww.writeLine("an object has and the current values.");							
+			ww.writeLine("See also get command.");	
+			ww.writeLine("");
+			ww.writeLine("Only op can use this command.");	
 		}
 		else
 		{
+			ww.writeLine("No help for command "+cmd);
 			return false;
 		}
 		return true;
 	}
 	
+
+	
 	// Returns true if the command was found and performed.
-	protected boolean doCommand(String cmd, WordReader wr) throws IOException
+	protected boolean doCommand(String cmd, WordReader wr, WordWriter ww) throws IOException
 	{	
 		final char ch=cmd.charAt(0);
+		boolean cmdFound=false;
 		
 		switch(ch)
 		{
+			/*case 'a':
+				if (cmd.equals("addPlayerPref"))
+				{		
+					String prefName = wr.readWord();
+					String prefValue = wr.readString();
+					player.addPlayerPrefThreadSafe(prefName, prefValue);						
+					cmdFound=true;					
+				}
+				break;*/
+
 			case 'c':
 			{
 				if (cmd.equals("cd"))
 				{
 					String n=wr.readWord(); // Name Or Index
-					if (n.equals("?"))
-					{
-						helpCommand(cmd);
-					}
-					else if (n.length()>0)
+					if (n.length()>0)
 					{
 	
 						DbBase newDefaultObj=findObjectByNameOrIndex(n);
@@ -182,39 +258,36 @@ public abstract class OpServer extends MirrorServer {
 						}
 						else
 						{
-							writeLine("not found");
+							ww.writeLine("not found");
 						}
 					}
 					else
 					{
 						defaultObj=worldBase;
 					}
+					cmdFound = true;
 				}
 				else if (cmd.equals("cat"))
 				{
 					String n=wr.readWord(); // Name Or Index
-					if (n.equals("?"))
+					DbBase d= findObjectByNameOrIndex(n);
+					d.listInfo(ww);
+					cmdFound = true;
+				}
+				else if (cmd.equals("cmd"))
+				{
+					if (isAdmin())
 					{
-						helpCommand(cmd);
+						String n=wr.readWord(); // Name Or Index
+						DbBase d= findObjectByNameOrIndex(n);
+						String str=wr.readWord();
+						d.interpretCommand(str, wr, ww);
 					}
 					else
 					{
-						DbBase d= findObjectByNameOrIndex(n);
-			
-						WordWriter ww = new WordWriter();
-						d.listInfo(ww, "  ");
-						String str=ww.getString();
-						WordReader wr2 = new WordReader(str);
-						while(wr2.isOpenAndNotEnd())
-						{
-							String line2=wr2.readLine();
-							writeLine(line2);
-						}
+						ww.writeLine("Permission denied");
 					}
-				}
-				else
-				{
-					return false;
+					cmdFound = true;
 				}
 				break;
 			}
@@ -229,11 +302,7 @@ public abstract class OpServer extends MirrorServer {
 						{
 							WorldBase ew=(WorldBase)worldBase;
 							ew.setOps(player.getName());
-							writeLine("Removed all but "+player.getName()+" from op list");
-						}
-						else if (n.equals("?"))
-						{
-							helpCommand(cmd);
+							ww.writeLine("Removed all but "+player.getName()+" from op list");
 						}
 						else
 						{
@@ -241,58 +310,88 @@ public abstract class OpServer extends MirrorServer {
 							final int r = ew.rmOp(n);
 							if (r>0)
 							{
-								writeLine("Removed "+n+" from op list");							
+								ww.writeLine("Removed "+n+" from op list");							
 							}
 							else
 							{
-								writeLine("Did not find "+n+" in op list");								
+								ww.writeLine("Did not find "+n+" in op list");								
 							}
 						}
 					}
 					else
 					{
-						writeLine("Permission denied");
+						ww.writeLine("Permission denied");
 					}
+					cmdFound = true;
 				}	
 				else if (cmd.equals("dump"))
 				{
 					String n=wr.readWord(); // Name Or Index
-					if (n.equals("?"))
-					{
-						helpCommand(cmd);
-					}
-					else
-					{
-						DbBase d= findObjectByNameOrIndex(n);
-						writeLine(d.toString());
-					}
-				}
-				else
-				{
-					return false;
+					DbBase d= findObjectByNameOrIndex(n);
+					ww.writeLine(d.toString());
+					cmdFound = true;
 				}
 				break;
 			}
+			case 'g':
+			{
+				if (cmd.equals("get"))
+				{
+					String n=wr.readWord(); // Name Or Index
+
+					if (isAdmin())
+					{
+						DbBase d= findObjectByNameOrIndex(n);
+						if (d!=null)
+						{
+							String valueTag=wr.readWord();
+							if (d.getInfo(ww, valueTag, wr)<0)
+							{
+								ww.writeLine("did not find tag '"+valueTag+"'");
+							}
+							else
+							{
+								ww.writeLine("");
+							}
+						}
+						else
+						{
+							ww.writeLine("did not find object '"+n+"'");
+						}
+					}	
+					else
+					{
+						ww.writeLine("Permission denied");
+					}
+					cmdFound = true;
+				}
+				break;
+			}
+
 			case 'h':
 			{
 				if (cmd.equals("help"))
 				{
-					if (wr.isOpenAndNotEnd())
-					{
-						String n=wr.readWord(); // Name Or Index
-						if (helpCommand(n)==false)
-						{
-							writeLine("Sorry, no more help on '"+cmd+"'");
-						}
-					}
-					else
-					{
-						helpCommand(null);
-					}
+					String subCmd=wr.readWord(); // Name Or Index
+
+					return helpCommand(subCmd, wr, ww, cmd);
 				}
-				else
-				{
-					return false;
+				break;
+			}
+			case 'l':
+			{
+				if (cmd.equals("ls"))
+				{				
+					String n=wr.readWord(); // Name Or Index
+					final DbBase d= findObjectByNameOrIndex(n);
+		
+					final DbBase sid[]=d.getListOfSubObjectsThreadSafe();
+			
+					for(int i=0;i<sid.length; i++)
+					{
+						ww.writeLine(sid[i].toShortFormatedString());
+					}
+					cmdFound = true;
 				}
 				break;
 			}
@@ -303,19 +402,16 @@ public abstract class OpServer extends MirrorServer {
 					if (wr.isOpenAndNotEnd())
 					{
 						String n=wr.readWord(); // Name Or Index
-						if (helpCommand(n)==false)
+						if (helpCommand(n, wr, ww, "man")==false)
 						{
-							writeLine("Sorry, no more help on '"+cmd+"'");
+							ww.writeLine("Sorry, no more help on '"+cmd+"'");
 						}
 					}
 					else
 					{
-						helpCommand(null);
+						helpCommand("man", wr, ww, null);
 					}
-				}
-				else
-				{
-					return false;
+					cmdFound = true;
 				}
 				break;
 			}
@@ -323,36 +419,26 @@ public abstract class OpServer extends MirrorServer {
 				if (cmd.equals("op"))
 				{
 					String  n=wr.readName();
-					if (n.equals("?"))
+					if (isAdmin())
 					{
-						helpCommand(cmd);
-					}
-					else
-					{
-						if (isAdmin())
+						WorldBase ew=(WorldBase)worldBase;
+						final int r = ew.addOp(n);
+						if (r>0)
 						{
-							WorldBase ew=(WorldBase)worldBase;
-							final int r = ew.addOp(n);
-							if (r>0)
-							{
-								writeLine("Added "+n+" to op list");							
-							}
-							else
-							{
-								writeLine("Did not add "+n+" to op list");								
-							}
-
+							ww.writeLine("Added "+n+" to op list");							
 						}
 						else
 						{
-							writeLine("Permission denied");
+							ww.writeLine("Did not add "+n+" to op list");								
 						}
+
 					}
+					else
+					{
+						ww.writeLine("Permission denied");
+					}
+					cmdFound = true;
 				}	
-				else
-				{
-					return false;
-				}
 				break;
 			case 'p':
 			{
@@ -360,16 +446,13 @@ public abstract class OpServer extends MirrorServer {
 				{
 					if (wr.isOpenAndNotEnd())
 					{
-						helpCommand(cmd);
+						helpCommand(cmd, wr, ww, null);
 					}
 					else
 					{
-						writeLine(defaultObj.getNameAndPathInternal("/"));
+						ww.writeLine(defaultObj.getNameAndPathInternal("/"));
 					}
-				}
-				else
-				{
-					return false;
+					cmdFound = true;
 				}
 				break;
 			}
@@ -380,47 +463,42 @@ public abstract class OpServer extends MirrorServer {
 					String n=wr.readWord(); // Name Or Index
 					if (n.equals("?"))
 					{
-						typicalHelpPath(cmd, "Show some general information about an object.");
+						typicalHelpPath(cmd, "Show some general information about an object.", ww);
 					}
 					else
 					{
 						DbBase d= findObjectByNameOrIndex(n);
-						writeLine(d.getObjInfoPathNameEtc());
+						ww.writeLine(d.getObjInfoPathNameEtc());
 					}
+					cmdFound = true;
 				}
 				else if (cmd.equals("set"))
 				{
 					String n=wr.readWord(); // Name Or Index
 
-					if (n.equals("?"))
+					if (isAdmin())
 					{
-						helpCommand(cmd);
-					}
-					else
-					{
-						if (isAdmin())
+						DbBase d= findObjectByNameOrIndex(n);
+						if (d!=null)
 						{
-							DbBase d= findObjectByNameOrIndex(n);
-							if (d!=null)
+							String valueTag=wr.readWord();
+							if (d.setInfo(wr, valueTag)<0)
 							{
-								String valueTag=wr.readWord();
-								if (d.setInfo(wr, valueTag)<0)
-								{
-									writeLine("did not find tag '"+valueTag+"'");
-								}
+								ww.writeLine("did not find tag '"+valueTag+"'");
 							}
-							else
-							{
-								writeLine("did not find object '"+n+"'");
-							}
-						}	
+						}
 						else
 						{
-							writeLine("Permission denied");
+							ww.writeLine("did not find object '"+n+"'");
 						}
+					}	
+					else
+					{
+						ww.writeLine("Permission denied");
 					}
+					cmdFound = true;
 				}
-				else if (cmd.equals("setPw"))
+				else if (cmd.equals("setSrvPw"))
 				{
 					String n=wr.readWord(); // Name Or Index
 					if (isAdmin())
@@ -432,39 +510,32 @@ public abstract class OpServer extends MirrorServer {
 						}
 						else
 						{
-							writeLine("That PW is to long, to short or contains characters not allowed");							
+							ww.writeLine("That PW is to long, to short or contains characters not allowed");							
 						}
 					}
 					else
 					{
-						writeLine("Permission denied");
+						ww.writeLine("Permission denied");
 					}
-				}
-				else
-				{
-					return false;
+					cmdFound = true;
 				}
 				break;
 			}
 			case 'x':
 				if (cmd.equals("xyzzy"))
 				{
-					writeLine("nothing happens");
+					ww.writeLine("nothing happens");
+					cmdFound = true;
 				}	
-				else
-				{
-					return false;
-				}
 				break;
 			default:
 			{
-				return false;
+				// Nothing
 			}
 		}
-		return true;
+		return cmdFound;
 	}
 
-	
     public static boolean isStringOkAsPlayerName(String name)
     {
     	return WordWriter.isNameOk(name,1); // We shall perhaps require player names to be longer eventually.

@@ -121,7 +121,7 @@ MirrorDb.prototype.onMirrorMessage=function(arg)
 
 
 	var cmd=arg[0];
-	if ((cmd=="mirrorUpdate") || (cmd=="mirrorAdd"))
+	if ((cmd=="ma") || (cmd=="mu") || (cmd=="mirrorUpdate") || (cmd=="mirrorAdd"))
 	{
 		var id=parseInt(arg[1]);
 		var parentId=parseInt(arg[2]);

@@ -1,30 +1,26 @@
 /*
 WordReader.java
 
-Copyright 2013 Henrik Björkman (www.eit.se/hb)
+Copyright (C) 2016 Henrik Björkman (www.eit.se/hb)
+License: www.eit.se/rsb/license
 
 
 History:
 2013-02-27
 Created by Henrik Bjorkman (www.eit.se/hb)
 
+2016-01-01 
+Cleanup by Henrik Bjorkman (www.eit.se/hb)
 */
 
 package se.eit.web_package;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
 
 
 
 
 public class WordReader {
 
-	// TODO: We should use a base class and one extending class for each of these possible sources, instead of 3 references here of which we usually use only one at a time.
-	BufferedReader bufferedReader=null;
-	InputStream inputStream=null;
-	WebConnection tcpConnection=null;
 	
 	int tcpConnectionTimeoutMs=0;
 	
@@ -41,13 +37,15 @@ public class WordReader {
 	{
 		this.clientConnection = clientConnection;
 	}*/
+
 	
-	// http://docs.oracle.com/javase/6/docs/api/java/io/BufferedReader.html
-	public WordReader(BufferedReader bufferedReader)
+	// This constructor is to be used by extending classes, it would make little sense to create a WordReader without something to read.
+	public WordReader()
 	{
-		this.bufferedReader = bufferedReader;
 	}
 	
+	
+	// This is used to read words etc from a string.
 	public WordReader(String str)
 	{
 		inputStr=str;
@@ -57,21 +55,9 @@ public class WordReader {
 	}
 
 
-	// Use this one when reading from standard input only. Not a generic InputStream since we will not close the InputStream.
-	public WordReader(InputStream is)
-	{
-		//this.bufferedReader =  new BufferedReader(new InputStreamReader(is));
-		this.inputStream = is;
-	}
 	
-	public WordReader(WebConnection tc, int timeoutMs)
-	{
-		//this.bufferedReader =  new BufferedReader(new InputStreamReader(is));
-		this.tcpConnection = tc;
-		tcpConnectionTimeoutMs = timeoutMs;
-	}
 	
-	private void checkStrBuffer()
+	protected void checkStrBuffer()
 	{
 		if (inputStrOffset>=inputStrLength)
 		{
@@ -79,86 +65,12 @@ public class WordReader {
 			inputStr=null;
 		}
 		
-		// If we have no inputStr buffer check if there is more data.
 		if (inputStr==null)
 		{						
 			inputStrOffset = 0;
 			inputStrLength = 0;
-			/*if (clientConnection!=null)
-			{
-				inputStr = clientConnection.readLineBlocking();
-			}
-			else */ 
-			if (bufferedReader!=null)
-			{
-				try {
-					inputStr = bufferedReader.readLine();
-				} catch (IOException e) {
-					debug("could not read line");
-					e.printStackTrace();
-
-				}
-				
-				if (inputStr!=null)
-				{
-					inputStrLength=inputStr.length();
-				}
-			}
-			else if (inputStream!=null)
-			{
-				try 
-				{
-					for(;;)
-					{
-						int n=inputStream.available();
-						if (n>0)
-						{
-						    byte d[] = new byte[n];
-							int len = inputStream.read(d);
-								
-						    if (len>0)
-						    {
-						    	inputStr = new String(d, 0, len);
-						    	break;
-						    }			
-						}
-						synchronized(this)
-						{
-							try {
-								wait(100);
-							} catch (InterruptedException e) {
-								e.printStackTrace();
-							}
-						}
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				inputStrLength=inputStr.length();
-			}
-			else if (tcpConnection!=null)
-			{
-				try {
-					inputStr = tcpConnection.readLine(tcpConnectionTimeoutMs)+"\n";
-				} catch (InterruptedException e) {
-					// Just a timeout.
-				} catch (IOException e) {
-					tcpConnection.close();
-					tcpConnection = null;					
-				}
-				
-				if (inputStr!=null)
-				{
-					inputStrLength=inputStr.length();
-				}
-			}
 		}
-		
-		/*if (inputStrLength==0)
-		{
-			debug("hmm, empty line, we should get next");
-		}*/
-		
+				
 	}		
 	
 	public char getWaitChar()
@@ -207,6 +119,18 @@ public class WordReader {
 	}
 	*/
 
+	public static boolean isCharInStr(char ch, String separator)
+	{
+		for (int i=0; i<separator.length();i++)
+		{
+			if (ch==separator.charAt(i))
+			{
+				return true;	
+			}
+		}
+		return false;
+	}
+	
 	
 	// Returns true is ch is a separator between words 
 	public static boolean isSeparator(char ch, String separator) 
@@ -219,22 +143,20 @@ public class WordReader {
 		{
 			return true;
 		}
-		else if (Character.isAlphabetic(ch))
+		else if (isLetterOrDigitOrUnderscore(ch))
 		{
 			return false;
 		}
-		for (int i=0; i<separator.length();i++)
+		else if (isCharInStr(ch, separator))
 		{
-			if (ch==separator.charAt(i))
-			{
-				return true;	
-			}
+			return true;	
 		}
 		return false;
 	}
 	
 
 	// To get one word from the input, words are separated by separator
+	// deprecated, use readToken
 	public String readWord(String separator) 
 	{
 		StringBuffer sb=new StringBuffer();		
@@ -252,7 +174,7 @@ public class WordReader {
 			
 			switch(state)
 			{
-			     case 0:
+			     case 0: // initial state, skipping spaces and separators
 			     {
 			 		// skip spaces, if this was not a separator add it to the buffer and change state.
 			 		if (!isSeparator(ch, separator))
@@ -262,7 +184,7 @@ public class WordReader {
 			 		}			 		
 			 		break;
 			     }
-			     case 1:
+			     case 1: // a normal word
 			     {
 			    	// Now look for the trailing space
 				 	if (isSeparator(ch, separator))
@@ -285,11 +207,13 @@ public class WordReader {
 		return sb.toString(); 			
 	}
 
+	// deprecated, use readToken
 	public String readWord(char separator) 
 	{
 		return readWord(""+separator);
 	}
 
+	// deprecated, use readToken
 	public String readWord()
 	{
 		return readWord("");
@@ -324,7 +248,7 @@ public class WordReader {
 	{
 		skipWhiteAndCheckStrBuffer();		
 
-		if (inputStr.length()<1)
+		if (inputStr.length()<=inputStrOffset)
 		{
 			return false;
 		}
@@ -374,137 +298,142 @@ public class WordReader {
 		return (ch>='0' && ch<='9') || ch=='-' || ch=='+' ;			
 	}
 	
-    // true if next thing to read looks like its a number (it only looks at one character so it can still be an incorrect number)
-	public boolean isNextInt() 
+	
+	
+    // true if next thing to read looks like its a number, an int or a float.
+	public boolean isNextIntOrFloat() 
 	{
-		if (inputStr==null)
+		boolean found=false;
+		try
+		{
+			if (inputStr==null)
+			{
+				return false;
+			}
+	
+			skipWhiteAndCheckStrBuffer();
+	
+			int n=inputStr.length();
+			
+			if (n<1)
+			{
+				return false;
+			}
+
+			int i=inputStrOffset;
+
+			char ch=inputStr.charAt(i);
+			i++;
+			if ((ch>='0' && ch<='9'))
+			{
+				// OK, first char is a digit.
+				found=true;
+			}
+			else if (ch=='-' || ch=='+')
+			{
+				// Ok if digits follow
+				if (n<=1)
+				{
+					// No the string ended after +/-, not an int
+					return false;
+				}
+			}
+			else
+			{
+				// Not a number. First char is a letter or space or something.
+				return false;
+			}
+			
+
+			while(i<n)
+			{				
+				ch=inputStr.charAt(i);				
+				i++;
+				if ((ch>='0' && ch<='9'))
+				{
+					found=true;
+					// OK
+				}
+				else if (((ch=='.') || (ch=='-') || (ch=='E')) && (found))
+				{
+					// OK, will accept parts of a float also. 
+					// Floats can look like this: 9.223372E18
+					// This code does not check that there is only one E and one '.'.
+				}
+				else if (isWhiteSpaceCrLf(ch))
+				{
+					// String ends here, if it was numbers this far then it is a number.
+					return found;
+				}
+				else
+				{
+					// Not a number.
+					return false;
+				}								
+			}
+		}
+		catch (NullPointerException e)
 		{
 			return false;
 		}
 
-		skipWhiteAndCheckStrBuffer();
-
-		if (inputStr.length()<1)
-		{
-			return false;
-		}
-		
-		char ch=inputStr.charAt(inputStrOffset);
-		
-		return (ch>='0' && ch<='9') || ch=='-' || ch=='+' ;
+		return found;
 	}
 
 		
 	
-	
+    // true if next thing to read is a string that begins with same as str
+	public boolean isNext(String str1)
+	{
+		skipWhiteAndCheckStrBuffer();
+
+		if (inputStr.length()<str1.length()+inputStrOffset)
+		{
+			return false;
+		}
+
+		int n=str1.length();
+		
+		int i=0;
+
+		
+		while(i<n)
+		{
+			char ch1=str1.charAt(i);
+			char ch2=inputStr.charAt(inputStrOffset+i);
+		
+			if (ch1!=ch2)
+			{
+				return false;
+			}
+			i++;
+		}
+		
+		// TODO We might want to check that a word in input string ended here. 
+		
+		return true;
+	}
 	
 	
 	// Read a string, a string is a number of words surrounded by quotes '"'.
 	public String readString() 
 	{
-		StringBuffer sb=new StringBuffer();
-		int state=0;
-		char quoteChar='"';
-		
-		while (state<4)
-		{
-			char ch=getWaitChar();
-
-			// Check for end of file or closed socket
-			if (ch==Character.MIN_VALUE)
-			{
-				break;
-			}
-			
-			switch(state)
-			{
-			     case 0:
-			     {
-			 		// skip spaces, look for leading '"'
-			 		if (!isSeparator(ch, ""))
-			 		{	 			
-				        // First char in a string shall be a '"'
-				 		if (ch=='"')
-						{
-				 			state=1;
-						}	
-				 		else if (ch=='\'')
-						{
-				 			quoteChar='\'';
-				 			state=1;
-						}	
-				 		else
-				 		{
-				 			// This string did not begin with quotes, so it will end with space instead
-							//debug("String shall start with '\"'");
-							sb.append(ch);
-							state=3;
-				 		}
-			 		}
-			 		break;
-			     }
-			     case 1:
-			     {
-			    	// Now look for the trailing '"' or the escape char '\'
-					if (ch==quoteChar)
-					{				
-						// This marks the end of the string
-						state=4;
-					}
-					else if (ch=='\\')
-					{
-						// This is the escape char, special char follows-
-						state=2;
-					}
-					else
-					{
-						sb.append(ch);
-					}
-					break;
-			     }
-			     case 2:
-			     {
-			    	 // This was the character after an escape char.
-			    	 if ((ch!=quoteChar) && (ch!='\\'))
-			    	 {
-			    		 debug("expected \" or \\ after string esc char");
-			    	 }
-			    	 sb.append(ch);
-			    	 state=1;
- 					 break;
-			     }
-			     case 3:
-			     {
-			    	// Now look for the trailing space
-				 	if (isSeparator(ch, ""))
-				 	{
-				 		state=4;
-				 	}
-					else
-					{
-						sb.append(ch);
-					}
-					break;
-			     }
-			}
-		}
-
-
-		return sb.toString(); 	
+		String tmp = readToken(",;:/[");
+		return tmp;
 	}
 
 	// Reads a small number -128 to 127 that is written in ascii. This does not read a binary byte from the input stream.
 	public byte readByte() throws NumberFormatException
 	{
-		String str=readWord(",;:/");
+		String str=readToken(",;:/[");
 		try {
-			byte i = Byte.parseByte(str);
-			return i;
+			int i = Integer.parseInt(str);
+			return (byte)i;
 		}
 		catch (NumberFormatException e)
 		{
 			WordWriter.safeError("\nWordReader.readInt: NumberFormatException expected byte but found " + str + " ");
-			throw(new NumberFormatException("expected byte but found '" + str + "' "));
+			throw(new NumberFormatException("expected byte but found '" + str + "'"));
 		}
 	}
 	
@@ -512,7 +441,7 @@ public class WordReader {
 	// The integer numbers are usually separated by space. But they can also be separated by ',;:/'
 	/*public int readInt()
 	{
-		String str=readWord(",;:/");
+		String str=readWord(",;:/[");
 		try {
 			int i = Integer.parseInt(str);
 			return i;
@@ -526,7 +455,7 @@ public class WordReader {
 	}*/
 	public int readInt() throws NumberFormatException
 	{
-		final String str=readWord(",;:/");
+		final String str=readToken(",;:/[");
 		try {
 			final int i = Integer.parseInt(str);
 			return i;
@@ -537,13 +466,12 @@ public class WordReader {
 			throw(new NumberFormatException("expected int but found '" + str + "' "));
 		}
 	}
-
 	
-	// Reads a big number that is written in ascii.
-	// The long integer numbers are usually separated by space. But they can also be separated by ',;:/'
+	// Reads a number that is written in ascii.
+	// The long numbers are usually separated by space. But they can also be separated by ',;:/'
 	public long readLong() throws NumberFormatException
 	{
-		String str=readWord(",;:/");
+		String str=readToken(",;:/[");
 		try {
 			long i = Long.parseLong(str);
 			return i;
@@ -557,14 +485,14 @@ public class WordReader {
 
 	public float readFloat() throws NumberFormatException
 	{
-		String str=readWord(",;:/");
+		String str=readToken(",;:/[");
 		try {
 			float f = Float.parseFloat(str);
 			return f;
 		}
 		catch (NumberFormatException e)
 		{
-			WordWriter.safeError("\nWordReader.readInt: NumberFormatException expected float but found " + str + " ");
+			WordWriter.safeError("\nWordReader.readFloat: NumberFormatException expected float but found " + str + " ");
 			throw(new NumberFormatException("expected float but found '" + str + "' "));
 		}
 	}
@@ -646,24 +574,7 @@ public class WordReader {
 	// If it is a tcp/ip connection then this is: "isOpen"
 	public  boolean isOpenAndNotEnd()
 	{
-		/*if (clientConnection!=null)
-		{
-			return clientConnection.isOpen();
-		}
-		else*/ 
 		if ((inputStr!=null) && (inputStrOffset!=inputStrLength))
-		{
-			return true;
-		}
-		if (bufferedReader!=null)
-		{
-			return true;
-		}
-		else if (inputStream!=null)
-		{
-			return true;
-		}
-		else if (tcpConnection!=null)
 		{
 			return true;
 		}
@@ -673,30 +584,6 @@ public class WordReader {
 	
 	public  void close()
 	{
-		/*if (clientConnection!=null)
-		{
-			//clientConnection.close();
-			clientConnection=null;
-		}*/
-		if (bufferedReader!=null)
-		{
-			try {
-				bufferedReader.close();
-				bufferedReader=null;
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		if (inputStream!=null)
-		{
-			// We assume input stream was standard input so we don't clos it here. 
-			inputStream=null;
-		}
-		if (tcpConnection!=null)
-		{
-			tcpConnection.close();
-			tcpConnection=null;
-		}
 		
 		inputStr=null;
 		inputStrOffset=0;
@@ -954,4 +841,304 @@ public class WordReader {
     	}    	
     	return a;
     }
+
+
+	// Reads a boolean that is written in ascii.
+    public boolean readBoolean() throws NumberFormatException
+    {
+		String str=readToken(",;:/[");
+		try {
+			int i = Integer.parseInt(str);
+			return (i==0)?false:true;
+		}
+		catch (NumberFormatException e)
+		{
+			WordWriter.safeError("\nWordReader.readInt: NumberFormatException expected long but found " + str + " ");
+			throw(new NumberFormatException("expected long but found '" + str + "' "));
+		}
+    	
+    }
+
+    
+    
+	public char previewChar()
+	{
+		checkStrBuffer();
+		
+		if (inputStr==null)
+		{
+			return Character.MIN_VALUE;
+		}
+		
+		if (inputStrLength==0)
+		{
+			debug("getWaitChar got empty string");
+			return '\n';
+		}
+		
+		final char ch=inputStr.charAt(inputStrOffset);
+		return ch;
+	}
+
+	
+	public static boolean isInternalPartOfNumber(char ch)
+	{
+		if ((ch>='0' && ch<='9'))
+		{
+			return true;
+		}
+		else if (((ch=='.') || (ch=='-') || (ch=='E')))
+		{
+			// OK, will accept parts of a float also. 
+			// Floats can look like this: 9.223372E18
+			// This code does not check that there is only one E and one '.'.
+			return true;
+		}
+		return false;
+	}
+
+	public enum ReadTokenState {
+	    InitialState, 
+	    ParsingNumber, 
+	    ParsingName, 
+	    NumberOrOpcode,
+	    ParsingOpcode,  
+	    InsideString,
+	    EscapeChar,
+	    EndState
+	}
+	
+	
+	
+	
+	// To get one word from the input
+	public String readToken(String separatorChars)
+	{
+		final String singleCharTokens=",.;[](){}";
+		final String multiCharTokens="~^&|<>:=!*/%?";
+		StringBuffer sb=new StringBuffer();		
+		ReadTokenState state=ReadTokenState.InitialState;
+		char quoteChar=0;
+
+		
+		while (state!=ReadTokenState.EndState)
+		{
+			char ch=previewChar();
+			
+			// Check for end of file or closed socket
+			if (ch==Character.MIN_VALUE)
+			{
+				break;
+			}
+			
+			switch(state)
+			{
+				case InitialState: // initial state, skipping spaces and separators
+				{
+					// if this is not a separator add it to the buffer and change state.
+					if (isSeparator(ch, separatorChars))
+					{
+						// skip leading spaces
+						getWaitChar();
+					}
+					else if (Character.isDigit(ch))
+					{
+						sb.append(getWaitChar());
+						state=ReadTokenState.ParsingNumber;			    		
+					}
+					else if (isLetterOrDigitOrUnderscore(ch))
+				 	{
+						sb.append(getWaitChar());
+						state=ReadTokenState.ParsingName;
+				 	}
+					else if (ch=='-')
+					{
+						sb.append(getWaitChar());
+						state=ReadTokenState.NumberOrOpcode;			    		
+					}
+					else if (ch=='"')
+					{
+						quoteChar=getWaitChar();
+						state=ReadTokenState.InsideString;			    		
+					}
+					else if (ch=='\'')
+					{
+						// single quoted string
+						quoteChar=getWaitChar();
+						state=ReadTokenState.InsideString;			    		
+					}
+					else if (isCharInStr(ch, singleCharTokens))
+					{
+						sb.append(getWaitChar());
+				 		state=ReadTokenState.EndState;			 			
+					}
+					else if (isCharInStr(ch, multiCharTokens))
+					{
+						sb.append(getWaitChar());
+				 		state=ReadTokenState.ParsingOpcode;			 			
+					}
+					else
+					{
+						// what to do with this one?
+						sb.append(getWaitChar());
+						state=ReadTokenState.EndState;
+					}
+					break;
+				}
+				case ParsingNumber: // a number, 
+				{
+					// Now look for the trailing space
+				 	if (isInternalPartOfNumber(ch))
+				 	{
+						sb.append(getWaitChar());
+				 	}
+					else
+					{
+				 		state=ReadTokenState.EndState;
+					}
+					break;
+				}
+				case ParsingName: // a normal word or name, 
+				{
+					// Now look for the trailing space
+				 	if (isLetterOrDigitOrUnderscore(ch))
+				 	{
+						sb.append(getWaitChar());
+				 	}
+					else
+					{
+						final String r=sb.toString();
+						if (r.equals("null"))
+						{
+							//debug("null");
+							return null;
+						}
+				 		state=ReadTokenState.EndState;
+					}
+					break;
+				}
+				case NumberOrOpcode: // a number or an opcode?
+				{
+				 	if (Character.isDigit(ch))
+				 	{
+				 		// Part of a number, as in -9.01
+						sb.append(getWaitChar());
+						state=ReadTokenState.ParsingNumber;
+				 	}
+					else if (isCharInStr(ch, multiCharTokens))
+					{
+						sb.append(getWaitChar());
+				 		state=ReadTokenState.ParsingOpcode;			 			
+					}
+					else
+					{
+				 		state=ReadTokenState.EndState;
+					}
+					break;
+				}
+				case ParsingOpcode: // part of an opcode 
+				{
+					if (isCharInStr(ch, multiCharTokens))
+					{
+						sb.append(getWaitChar());
+					}
+					else
+					{
+				 		state=ReadTokenState.EndState;
+					}
+					break;
+				}
+			    
+				case InsideString:
+				{
+					// Now look for the trailing '"' or the escape char '\'
+					if (ch==quoteChar)
+					{				
+						// This marks the end of the string
+						getWaitChar();
+						state=ReadTokenState.EndState;
+					}
+					else if (ch=='\\')
+					{
+						// This is the escape char, special char follows-
+						getWaitChar();
+						state=ReadTokenState.EscapeChar;
+					}
+					else
+					{
+						sb.append(getWaitChar());
+					}
+					break;
+				}
+				case EscapeChar:
+				{
+					getWaitChar();
+					// https://en.wikipedia.org/wiki/Escape_sequences_in_C
+					switch(ch)
+					{
+						/*case 'a':
+						sb.append('\a');
+						break;*/
+					case 'b':
+						sb.append('\b');
+						break;
+					case 'f':
+						sb.append('\f');
+						break;
+					case 'n':
+						sb.append('\n');
+						break;
+					case 'r':
+						sb.append('\r');
+						break;
+					case 't':
+						sb.append('\t');
+						break;
+					case 'u':
+					case 'U':
+						debug("unicode escape sequence is not supported yet");
+						break;
+					/*case 'v':
+						sb.append('\v');
+						break;*/
+					case 'x':
+						debug("hex escape sequence is not supported yet");
+						break;
+					case '\\':
+					case '\'':
+					case '\"':
+					case '?':
+						sb.append(ch);
+						break;
+					default:
+					{
+						if ((ch>='0') && (ch<='9'))
+						{
+							debug("octal escape sequence is not supported yet");
+						}
+						else
+						{
+							debug("incorrect escape sequence");
+							}
+							sb.append(ch);
+							break;
+						}
+					}
+				
+					state=ReadTokenState.InsideString;
+					break;
+				 }
+				 
+			    default:
+			    {
+			    	break;
+			    }
+			}
+		}
+
+		final String r=sb.toString();
+		//debug("'"+r+"'");
+		return r; 			
+	}
+
 }

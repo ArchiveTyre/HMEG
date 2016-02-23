@@ -7,7 +7,10 @@ websocket-client.js
 
 
 
-Copyright 2013 Henrik Björkman (www.eit.se/hb)
+
+Copyright (C) 2016 Henrik Björkman (www.eit.se/hb)
+License: www.eit.se/rsb/license
+
 
 
 History:
@@ -28,7 +31,11 @@ import java.io.FileReader;
 import java.io.IOException;
 //import java.io.InputStream;
 
+import se.eit.rsb_factory_pkg.GlobalConfig;
+import se.eit.rsb_factory_pkg.RsbFactory;
 import se.eit.rsb_package.*;
+import se.eit.rsb_srv_main_pkg.FileServer;
+import se.eit.rsb_srv_main_pkg.SocketServer;
 import se.eit.rsb_server_pkg.TickThread;
 
 import java.io.PrintWriter;
@@ -41,8 +48,8 @@ import se.eit.web_package.*;
 
 public class Main {
 
-	GlobalConfig config=new GlobalConfig();
-	DbSuperRoot dbRoot = null;
+	GlobalConfig globalConfig=new GlobalConfig();
+	DbTickList dbRoot = null;
 	DbBase defaultObj=dbRoot; 
 	WebServer webServer = null;
 	TickThread tickThread = null;
@@ -100,22 +107,24 @@ public class Main {
 		else if (cmd.equals("sa"))
 		{
 			debug("saving all");
-			dbRoot.saveRecursive(config);
+			//dbRoot.setGlobalConfig(globalConfig);
+			dbRoot.saveRecursive();
 		}
 		else if (cmd.equals("save"))
 		{
-			DbRoot db=defaultObj.getDbRoot();
+			DbSubRoot db=defaultObj.getDbSubRoot();
 			debug("saving "+db.getName());
-			db.saveRecursive(config);
+			//db.setGlobalConfig(globalConfig);
+			db.saveRecursive();
 			
 		}
-		else if (cmd.equals("cdi"))
+		/*else if (cmd.equals("cdi"))
 		{
 			String n=cmdReader.readWord();
 			if (WordReader.isInt(n))
 			{
 				int id=Integer.parseInt(n);
-				DbRoot db=defaultObj.getDbRoot();
+				DbSubRoot db=defaultObj.getDbSubRoot();
 				if (db instanceof DbIdList)
 				{
 					DbIdList il=(DbIdList)db;
@@ -130,7 +139,7 @@ public class Main {
 			{
 				System.out.println("argument did not look like a number");
 			}
-		}
+		}*/
 		else if (cmd.equals("pwd"))
 		{
 			System.out.println("  "+defaultObj.getNameAndPath("/")+getIdIfAny(defaultObj));
@@ -138,11 +147,38 @@ public class Main {
 		else if (cmd.equals("cd"))
 		{
 			String n=cmdReader.readWord();
-			DbBase newDefaultObj=defaultObj.findRelativeFromNameOrIndex(n);
-
-			if (newDefaultObj!=null)
+			
+			// Check that input was given.
+			if (!n.equals(""))
 			{
-				defaultObj=newDefaultObj;
+				if (n.charAt(0) == '~')
+				{
+					n=n.substring(1);
+					int id=Integer.parseInt(n);
+					DbSubRoot db=defaultObj.getDbSubRoot();
+					if (db instanceof DbIdList)
+					{
+						DbIdList il=(DbIdList)db;
+						defaultObj = il.getDbIdObj(id);
+					}
+					else
+					{
+						System.out.println("default object is not in an DbIdList");
+					}				
+				}
+				else
+				{
+					DbBase newDefaultObj=defaultObj.findRelativeFromNameOrIndex(n);
+					if (newDefaultObj!=null)
+					{
+						defaultObj=newDefaultObj;
+					}
+				}
+			}
+			else
+			{
+				// Set the dir to default
+				defaultObj = dbRoot;
 			}
 			//debug("sd "+defaultObj.getNameAndPath());		
 		}
@@ -177,7 +213,7 @@ public class Main {
 			if (objToDelete!=null)
 			{
 			
-				DbRoot db=defaultObj.getDbRoot();
+				DbSubRoot db=defaultObj.getDbSubRoot();
 				db.lockWrite();
 				try
 				{
@@ -197,7 +233,7 @@ public class Main {
 		else if (cmd.equals("rls"))
 		{
 			//debug("list " + dbRoot.getName());
-			if (cmdReader.isNextInt())
+			if (cmdReader.isNextIntOrFloat())
 			{
 				final int recursionDepth=cmdReader.readInt();
 				defaultObj.listNameAndPath(new PrintWriter(System.out), recursionDepth, "  ");
@@ -205,7 +241,7 @@ public class Main {
 			else
 			{
 				//String path=WordReader.getWord(line);
-				//DbBase bo=dbRoot.getObjFromIndexPathWithinDbRoot(path);
+				//DbBase bo=dbRoot.getObjFromIndexPathWithinDbSubRoot(path);
 				defaultObj.listNameAndPath(new PrintWriter(System.out), 0, "  ");
 			}
 		}
@@ -217,27 +253,35 @@ public class Main {
 		}
 		else if (cmd.equals("cat")) 
 		{
-			WordWriter pw=new WordWriter(System.out);
-			defaultObj.listInfo(pw, "  ");
+			PrintWriter pw = new PrintWriter (System.out);			
+			WordWriter ww=new WordWriterPrintWriter(pw);
+			defaultObj.listInfo(ww);
+			ww.flush();
 			pw.flush();
 		}
 		else if (cmd.equals("ts")) 
 		{
-			WordWriter pw=new WordWriter(System.out);
-			pw.println(defaultObj.toString());
+			PrintWriter pw = new PrintWriter (System.out);
+			WordWriter ww=new WordWriterPrintWriter(pw);
+			ww.println(defaultObj.toString());
+			ww.flush();
 			pw.flush();
 		}
 		else if (cmd.equals("dr"))
 		{
-			WordWriter ww=new WordWriter(System.out);
+			PrintWriter pw = new PrintWriter (System.out);
+			WordWriter ww=new WordWriterPrintWriter(pw);
 			defaultObj.writeRecursive(ww);
 			ww.flush();
+			pw.flush();
 		}
 		else if (cmd.equals("ds"))
 		{
-			WordWriter ww=new WordWriter(System.out);
+			PrintWriter pw = new PrintWriter (System.out);
+			WordWriter ww=new WordWriterPrintWriter(pw);
 			defaultObj.writeSelf(ww);
 			ww.flush();
+			pw.flush();
 		}
 		else if (cmd.equals("mv"))
 		{
@@ -250,7 +294,7 @@ public class Main {
 				if (WordReader.isInt(n))
 				{
 					int id=Integer.parseInt(n);
-					DbRoot db=defaultObj.getDbRoot();
+					DbSubRoot db=defaultObj.getDbSubRoot();
 					if (db instanceof DbIdList)
 					{
 						DbIdList il=(DbIdList)db;
@@ -259,7 +303,8 @@ public class Main {
 						db.lockWrite();
 						try
 						{
-							defaultObj.moveBetweenRooms(from, to);
+							//defaultObj.moveBetweenRooms(from, to);
+							defaultObj.moveToRoom(to);
 						}
 						finally
 						{
@@ -288,7 +333,7 @@ public class Main {
 
 			
 			DbBase newDefaultObj;
-			DbRoot r=defaultObj.getDbRoot();
+			DbSubRoot r=defaultObj.getDbSubRoot();
 			r.lockRead();
 			try
 			{
@@ -313,16 +358,20 @@ public class Main {
 		}
 		else if (cmd.equals("set"))
 		{
-			DbRoot db=defaultObj.getDbRoot();
+			DbSubRoot db=defaultObj.getDbSubRoot();
 			db.lockWrite();
 			try
 			{
 				final String tag=cmdReader.readWord();
-				final String value=WordReader.getLineWithoutLf(cmdReader.readLine());
-				final boolean result=defaultObj.changeInfo(tag, value);
-				if (result==false)
+
+				final int result=defaultObj.setInfo(cmdReader, tag);
+				if (result==0)
 				{
 					System.out.println("did not find "+tag+ " or it is a read only property");											
+				}
+				else
+				{
+					defaultObj.setUpdateCounter();
 				}
 			}
 			finally
@@ -368,37 +417,47 @@ public class Main {
 	   
 	public void go()
 	{
-		System.out.println("Welcome to RSB");
+		System.out.println("Welcome to Drekkar games");
 	
-		config.logConfig(System.out);
+		globalConfig.logConfig(System.out);
 
    	
 		
 		debug("load existing worlds");
-		dbRoot = loadExistingWorldsAndPlayers();
+		loadExistingWorldsAndPlayers();
 
 		debug("Create and start tick, the thread that updates the world");
-		tickThread = new TickThread(config, dbRoot);
+		tickThread = new TickThread(globalConfig, dbRoot);
 		Thread ttt = new Thread(tickThread);
 	 	ttt.start();
 
-	 	FileServer fileServer=new FileServer(config, dbRoot);
-	 	WebSocketServer webSocketServer= new SocketServer(config, dbRoot);
+	 	
+	 	LoginLobbyConnection loginServerConnection=null;
+	 	if (globalConfig.loginServerHostname!=null)
+	 	{
+	 		// Connect to login server
+	 		loginServerConnection=new LoginLobbyConnection(globalConfig);
+			Thread loginServerConnectionThread = new Thread(loginServerConnection);
+			loginServerConnectionThread.start(); 		
+	 	}
+	 	
+	 	FileServer fileServer=new FileServer(globalConfig, dbRoot);
+	 	WebSocketServer webSocketServer= new SocketServer(globalConfig, dbRoot, loginServerConnection);
 
 	 	
 		debug("Create and start the thread that accepts new connections");
-		webServer = new WebServer(config.port, config.httpRootDir, webSocketServer, fileServer);   	
+		webServer = new WebServer(globalConfig.port, globalConfig.httpRootDir, webSocketServer, fileServer);   	
 		Thread stt = new Thread(webServer);
 		stt.start();
 		
-		if (config.startWebBrowser==true)
+		if (globalConfig.startWebBrowser==true)
 		{
 			debug("start web browser");
 			if(Desktop.isDesktopSupported())
 			{
 			  try 
 			  {
-				Desktop.getDesktop().browse(new URI("http://localhost:"+config.port));
+				Desktop.getDesktop().browse(new URI("http://localhost:"+globalConfig.port));
 			  } catch (IOException e) {
 					error("IOException "+e);
 					e.printStackTrace();
@@ -413,12 +472,12 @@ public class Main {
 			}
 		}
 		
-		debug("check input from standard input");
+		//debug("check input from standard input");
 		defaultObj=dbRoot;
-		wr=new WordReader(System.in);
+		wr=new WordReaderInputStream(System.in);
 		while (wr.isOpenAndNotEnd())
 		{
-			System.out.println("default object: "+defaultObj.getNameAndPath("/")+getIdIfAny(defaultObj));
+			//debug("default object: "+defaultObj.getNameAndPath("/")+getIdIfAny(defaultObj));
 			String cmdLine=wr.readLine();
 			WordReader cmdReader=new WordReader(cmdLine);
 			
@@ -435,8 +494,8 @@ public class Main {
 	
 	
 	
-	
-	private static void parse_file(File f, WordReader fwr, DbRoot rootObj) throws FileNotFoundException
+	// The files we parse here is written from DbSubRoot.saveSelf so if something is changed there it may need changing here also.	
+	private static void parse_file(File f, WordReader fwr, DbSubRoot rootObj) throws FileNotFoundException
 	{
 		
 		
@@ -446,62 +505,155 @@ public class Main {
 		
 		if (fwr.isOpenAndNotEnd())
 		{
+			DbSubRoot dbRoot = (DbSubRoot)rootObj.findOrCreateChildObject(name, "DbNoSaveRoot");
 		
-			DbRoot dbRoot=rootObj.findDbRootNotRecursive(name);
-			
-			if (dbRoot!=null)			
-			{
-				parse_file(f, fwr, dbRoot);
-			}
-			else
-			{
-				error("did not find '"+name+ "' in '" +rootObj.getNameAndPath("/")+"'");
-			}
+			parse_file(f, fwr, dbRoot);
 		}
 		else
 		{
-			System.out.println("parsing '" + f.getAbsolutePath()+"', '" + name + "', to be stored in '"+ rootObj.getNameAndPath("/")+"'");
+			// This is the final part of the full file name
+			debug("parsing '" + f.getAbsolutePath()+"', '" + name + "', to be stored in '"+ rootObj.getNameAndPath("/")+"'");
 
-			
+			// Open the file and create a WordReader to parse it.
 			BufferedReader is = new BufferedReader(new FileReader(f));
-			WordReader wr = new WordReader(is);
+			WordReader wr = new WordReaderBufferedReader(is);
 			
-			final String nameAndVersion=Version.getNameAndVersion();
-			String nav=wr.readString();
-			if (nav.equals(nameAndVersion))
+			// Make sure the saved file format is the expected format and version.
+			final String expectedProgramNameAndVersion=Version.fileFormatVersion();
+			
+			if (wr.isNextString())
 			{
-				debug("version "+nav);
-				try
+				// This is probably our own proprietary file format
+				String pnav=wr.readString();
+				if (pnav.equals(expectedProgramNameAndVersion))
 				{
-					DbBase go=DbContainer.staticParse(wr);
-				
-					if (go instanceof DbNamed)
+					debug("version "+pnav);
+					try
 					{
-						DbNamed gameObj = (DbNamed)go;
-						if (name.equals(gameObj.getName()))
+						// TODO we need to create the DbSubRoot object here, then let it linkSelf into rootObj and then read recursively the rest. This because things like GlobalConfig will not be known during recursive read unless it is part of the full tree already. 
+						
+						//DbBase go=DbContainer.staticParse(wr);
+	
+						String t = wr.readWord(); // get type of object to parse
+						DbBase go=RsbFactory.createObj(t);			
+						
+						if (go instanceof DbNamed)
 						{
-							debug("name ok '"+name+"'");
-							rootObj.addObject(go);
+							//DbNamed gameObj = (DbNamed)go;
+							//if (name.equals(gameObj.getName()))
+							//{
+								//debug("name ok '"+name+"'");
+								
+								rootObj.lockWrite();
+								try
+								{
+									go.linkSelf(rootObj);
+	
+								}
+								finally
+								{
+									rootObj.unlockWrite();
+								}
+	
+								
+								go.readRecursive(wr);
+	
+								
+								// It was not possible to register interference while loading since all objects must be loaded before setting up interference lists. So doing it here.
+								// TODO: Is there a better way so this can be done more automatically? Probably if using dedicated objects for interference and not sub rooms, then it can be done during linkSelf and the call below shall be removed.
+								//go.registerInterferenceRecursive(); 
+							//}
+							//else
+							//{
+							//	error("name not same as file name "+gameObj.getName()+" "+name+ " ignored object");
+							//}
 						}
 						else
 						{
-							error("name not same as file name "+gameObj.getName()+" "+name+ " ignored object");
+							error("not DbNamed");
 						}
 					}
+					catch (NumberFormatException e)
+					{
+						WordWriter.safeError("readChildrenRecursive: NumberFormatException: '" + e.getMessage() + "'");
+					}
 				}
-				catch (NumberFormatException e)
+				else
 				{
-					WordWriter.safeError("readChildrenRecursive: NumberFormatException: '" + e.getMessage() + "'");
+					// This was not the expected file save format, ignore this file.
+					System.out.println("ignored '" + f.getAbsolutePath() + "', old version: '"+pnav+"'");
+				}
+			}
+			else if (wr.isNextBegin())
+			{
+				// The file began with a '{' (alias begin) so this is perhaps JSON
+				wr.readWord();
+
+				if (wr.isNextString())
+				{
+					String v=wr.readString();
+					
+					if (v.equals("versionInfo"))
+					{
+						String pnav=wr.readString();
+						if (pnav.equals(expectedProgramNameAndVersion))
+						{
+							String t=wr.readString();
+					
+							DbBase o=RsbFactory.createObj(t);			
+		
+							try
+							{
+								
+								
+								rootObj.lockWrite();
+								try
+								{
+									o.linkSelf(rootObj);
+		
+								}
+								finally
+								{
+									rootObj.unlockWrite();
+								}
+		
+								
+								o.readRecursive(wr);
+		
+								
+							}
+							catch (NumberFormatException e)
+							{
+								WordWriter.safeError("readRecursive: NumberFormatException: '" + e.getMessage() + "'");
+							}
+						}
+						else
+						{
+							// Currently we can only read files generated by same version of the program (we do not always update the version string though, in fact usually we do not, so this is not expected to happen often).
+							System.out.println("old file version: '"+pnav+"', ignored: '" + f.getAbsolutePath() + "'");
+						}
+					}
+					else
+					{	
+						// The first object in our save files is expected to be the version info. 
+						System.out.println("unknown version, ignored: '" + f.getAbsolutePath() + "'");							
+					}
+				}
+				else
+				{
+					// This was not the expected file save format, ignore this file.
+					System.out.println("not the expected file format, ignored: '" + f.getAbsolutePath()+"'");
 				}
 			}
 			else
 			{
-				System.out.println("ignored " + f.getAbsolutePath() + " old version");
+				// This was not the expected file save format, ignore this file.
+				System.out.println("unknown file format, ignored: '" + f.getAbsolutePath() + "'");				
 			}
 		}
 	}
 	
-	private static void parse_file_name(File f, String fileName, DbRoot rootObj) throws FileNotFoundException
+	private static void parse_file_name(File f, String fileName, DbSubRoot rootObj) throws FileNotFoundException
 	{
 		
 		// check if it starts with magic word wap and ends with extension txt.
@@ -520,82 +672,104 @@ public class Main {
 			debug("ignored file '" +f.getAbsolutePath() + "' since it did not begin with '" + rootObj.getName()+"'");
 		}
 	}
-	
-	
-	public DbSuperRoot loadExistingWorldsAndPlayers()
+
+	// Saving sub roots is done in DbSubRoot.saveSelf. Then naming here and there need to match.	
+	void loadFolder(File folder, String path) throws IOException
 	{
-		DbSuperRoot newRoot = new DbSuperRoot("wap"); 
+		// Folder exist, now get the list of all files in it.
+		File[] listOfFiles = folder.listFiles();
 		
-		newRoot.lockWrite();
+		//File f = new File("ugl_save_world.txt");
+		
+		for (int i = 0; i < listOfFiles.length; i++) 
+		{
+			// For each file in the folder, check if it is a file, ignore directories.
+			File f = listOfFiles[i];										
+			if (f.isFile()) 
+			{
+				// This is a file, get its name
+				final String fileName = f.getName();
+
+				if (fileName.endsWith(".txt"))
+				{
+					final String n = path + fileName.substring(0, fileName.length()-4); // remove .txt part of file name
+					parse_file_name(f, n, dbRoot);
+				}							
+				else if (fileName.endsWith(".json"))
+				{
+					final String n = path + fileName.substring(0, fileName.length()-5); // remove .json part of file name
+					parse_file_name(f, n, dbRoot);
+				}							
+				else
+				{
+					debug("ignored file '"+ f.getName()+ "' (not a .txt or .json file)");
+				}
+			}
+			else if (f.isDirectory())
+			{
+				String n=path;
+				/*if (path.length()>0)
+				{
+					n+=".";
+				}*/
+				n+=f.getName()+".";
+				debug("dir " + n);
+				loadFolder(f, n);
+			}
+			else
+			{
+				debug("ignored "+ f.getName());
+			}
+
+		}
+	}
+	
+	// Saving sub roots is done in DbSubRoot.saveSelf. Then naming here and there need to match.	
+	public void loadExistingWorldsAndPlayers()
+	{
+		dbRoot = new DbTickList("wap", globalConfig); 
+		
+		dbRoot.lockWrite();
 		try {
-		
-			//GameObj lobby = new GameObj("players");
-			//newRoot.addGameObj(lobby);
-											
-			//GameObj audioLobby = new TmpObj("audioChannels", "place for audio channels of players");
-			//newRoot.addGameObj(audioLobby);
+					
+
+			//DbSubRoot players = new DbSubRoot(newRoot, PlayerData.nameOfPlayersDb);	
+			//DbSubRoot worlds = new DbSubRoot(newRoot, WorldBase.nameOfWorldsDb);
+
 			
 
-			DbRoot players = new DbRoot(newRoot, Player.nameOfPlayersDb);
-			//newRoot.addGameObj(players);
 			
-			DbRoot worlds = new DbRoot(newRoot, WorldBase.nameOfWorldsDb);
-			//newRoot.addGameObj(worlds);
-
-			players.lockWrite();
-			worlds.lockWrite();
+			//players.lockWrite();
+			//worlds.lockWrite();
 			
 			try {
 				// Will examine all files in current directory (alias folder)
-				File folder = new File(config.savesRootDir);
+				File folder = new File(globalConfig.savesRootDir);
 				System.out.println("loading worlds from " + folder.getAbsolutePath());
 				if (folder.exists())
 				{			
-					// Folder exist, now get the list of all files in it.
-					File[] listOfFiles = folder.listFiles();
-					
-					//File f = new File("ugl_save_world.txt");
-					
-					for (int i = 0; i < listOfFiles.length; i++) 
-					{
-						// For each file in the folder, check if it is a file, ignore directories.
-						File f = listOfFiles[i];										
-						
-						if (f.isFile()) 
-						{
-							// This is a file, get its name
-							final String fileName = f.getName();
-
-							if (fileName.endsWith(".txt"))
-							{														
-								parse_file_name(f, fileName.substring(0, fileName.length()-4), newRoot);
-							}							
-							else
-							{
-								debug("ignored file '"+ f.getName()+ "' (not a .txt file)");
-							}
-						}
-						else if (f.isDirectory())
-						{
-							debug("ignored dir "+ f.getName());
-						}
-						else
-						{
-							debug("ignored "+ f.getName());
-						}
-					}
+					loadFolder(folder, "");
 				}
 				else
 				{
 					System.out.println("Folder \".\" not found");
 				}
+				
+				
+				// Some databases are not stored on disc, recreate new ones for these.	
+				/*DbSubRoot players = (DbSubRoot)*/
+				dbRoot.findOrCreateChildObject(PlayerData.nameOfPlayersDb, PlayerData.typeOfPlayersDb);
+				
+				/*DbSubRoot worlds = (DbSubRoot)*/dbRoot.findOrCreateChildObject(WorldBase.nameOfWorldsDb, WorldBase.typeOfWorldsDb);
+
+				
 			} catch (IOException e) {
 					e.printStackTrace();
 			}
 			finally
 			{
-				players.unlockWrite();
-				worlds.unlockWrite();
+				//players.unlockWrite();
+				//worlds.unlockWrite();
 			}
 			/*
 			World w = newRoot.findWorld("world");
@@ -612,16 +786,15 @@ public class Main {
 			GameObj pdb = newRoot.findGameObj("playersdb") ;
 			if (pdb==null)
 			{
-				pdb = new DbRoot("playersdb", ""); 			
+				pdb = new DbSubRoot("playersdb", ""); 			
 				newRoot.addGameObj(pdb);
 			}
 			*/
 		}
 		finally
 		{
-			newRoot.unlockWrite();
+			dbRoot.unlockWrite();
 		}
-		return newRoot;
 	}
 
 	
@@ -630,10 +803,15 @@ public class Main {
 		System.out.println("Usage: ./server.jar <options> [options]");
 		System.out.println("");
 		System.out.println("Where [options] are:");
-		System.out.println("-p <port>   : tcpip port number");
-		System.out.println("-d <path>   : javascript directory");
-		System.out.println("-s <path>   : game save directory");
-		System.out.println("-w          : if set launch a web browser");
+		System.out.println("-p <port>                    : tcpip port number"); // Specify the IP port for the server. Clients shall connect to this port. Typically -p 8080.
+		System.out.println("-d <path>                    : javascript directory");
+		System.out.println("-s <path>                    : game save directory");
+		System.out.println("-l <path>                    : script/lua directory");
+		System.out.println("-r <path>                    : use a general root directory for the 3 above"); // Often the folders web, lua and saved_games are located in a common folder, so instead of using -d -s- l this can be used. 
+		System.out.println("-w                           : if set launch a web browser"); // Useful when testing, a pure servers should not use this.
+		System.out.println("-g <host> <port> <user> <pw> : game server only (no user data)"); // This server shall connect to the main server, players will be sent over from there.
+		System.out.println("-e                           : allow external servers"); // Set this switch if this is the main login server. External servers use -g to connect to this server.
+		System.out.println("-n <pw>                      : set a password for creating new games"); // If this is a login server this needs to be set to some good password.
 		System.out.println("");
 		System.out.println("Examples:");
 		System.out.println("-p 8080 -d ../../web -s ../../saved_games -w");
@@ -646,6 +824,7 @@ public class Main {
 	 */
 	public static void main(String[] args) 
 	{
+		
 		/*
 		{
 			System.out.println(""+Long.toString(-2, 16));
@@ -683,24 +862,64 @@ public class Main {
 				if (args[i].equals("-p"))
 				{
 					i++;
-					m.config.port=Integer.parseInt(args[i]);
-					debug("using port "+ m.config.port);
+					m.globalConfig.port=Integer.parseInt(args[i]);
+					debug("using port "+ m.globalConfig.port);
 				}
 				else if (args[i].equals("-d"))
 				{
 					i++;
-					m.config.httpRootDir=args[i];
-					debug("using httpRootDir "+ m.config.httpRootDir);
+					m.globalConfig.httpRootDir=args[i];
+					debug("using httpRootDir "+ m.globalConfig.httpRootDir);
 				}
 				else if (args[i].equals("-s"))
 				{
 					i++;
-					m.config.savesRootDir=args[i];
-					debug("using savesRootDir "+ m.config.savesRootDir);
+					m.globalConfig.savesRootDir=args[i];
+					debug("using savesRootDir "+ m.globalConfig.savesRootDir);
 				}
 				else if (args[i].equals("-w"))
 				{
-					m.config.startWebBrowser=true;
+					m.globalConfig.startWebBrowser=true;
+					debug("start web browser");
+				}
+				else if (args[i].equals("-g"))
+				{
+					i++;
+					m.globalConfig.loginServerHostname=args[i];
+					i++;
+					m.globalConfig.loginServerPort=Integer.parseInt(args[i]);
+					i++;
+					m.globalConfig.loginServerUsername=args[i];
+					i++;
+					m.globalConfig.loginServerUserPw=args[i];
+					debug("login server "+m.globalConfig.loginServerHostname+" "+m.globalConfig.loginServerPort);
+				}
+				else if (args[i].equals("-n"))
+				{
+					i++;					
+					m.globalConfig.startGamePw=args[i];
+					debug("password is required to start a new game");					
+				}
+				else if (args[i].equals("-l"))
+				{
+					i++;
+					m.globalConfig.luaScriptDir=args[i];
+					debug("using luaScriptDir "+ m.globalConfig.luaScriptDir);
+				}
+				else if (args[i].equals("-r"))
+				{
+					i++;
+					String path=args[i];
+					m.globalConfig.luaScriptDir=path+"/lua";
+					m.globalConfig.httpRootDir=path+"/web";
+					m.globalConfig.savesRootDir=path+"/saved_games";
+					debug("using luaScriptDir "+ m.globalConfig.luaScriptDir);
+					debug("using httpRootDir "+ m.globalConfig.httpRootDir);
+					debug("using savesRootDir "+ m.globalConfig.savesRootDir);
+				}
+				else if (args[i].equals("-e"))
+				{
+					m.globalConfig.allowExternal=true;
 					debug("start web browser");
 				}
 				else
@@ -713,9 +932,9 @@ public class Main {
 			}
 
 		 	// Check that the http root directory exist
-		 	File theDir = new File(m.config.httpRootDir);
+		 	File theDir = new File(m.globalConfig.httpRootDir);
 		 	if (!theDir.exists()) {
-		 		System.out.println("\nThe http root directory was not found at: "+m.config.httpRootDir+"\n");
+		 		System.out.println("\nThe http root directory was not found at: "+m.globalConfig.httpRootDir+"\n");
 		 		System.out.println("Use switch -? for usage help");
 				//System.exit(1);		 		  
 				return;

@@ -1,40 +1,32 @@
 /*
-TextAdventureServer.java
-
-Copyright (c) 2015 Henrik Björkman (www.eit.se/hb)
-
+Copyright (C) 2016 Henrik Björkman (www.eit.se/hb)
+License: www.eit.se/rsb/license
 */
-
-package se.eit.rsb_srv_main_pkg;
+package se.eit.rsb_server_pkg;
 
 
 import java.io.IOException;
 
 import se.eit.rsb_package.*;
 import se.eit.rsb_server_pkg.ServerBase;
-import se.eit.rsb_server_pkg.ServerTcpConnection;
-import se.eit.rsb_srv_main_pkg.GlobalConfig;
 import se.eit.db_package.*;
 import se.eit.web_package.*;
-import se.eit.TextAdventure.*;
 
 
+public class ChatRoomServer extends ServerBase implements NotificationReceiver {
 
-public class TextAdventureServer extends ServerBase implements NotificationReceiver {
-
-	TextAdventureWorld w;
+	ChatRoomWorld w;
 	int updateCounter=0;
-	DbBase avatar;
 	
 	public static String className()
 	{	
 		// http://stackoverflow.com/questions/936684/getting-the-class-name-from-a-static-method-in-java		
-		return TextAdventureServer.class.getSimpleName();	
+		return ChatRoomServer.class.getSimpleName();	
 	}	
 	
     public void debug(String str)
 	{
-    	WordWriter.safeDebug(className()+"("+stc.getInfo()+"): "+str);
+    	WordWriter.safeDebug(className()+"("+stc.getTcpConnection().getTcpInfo()+"): "+str);
 	}
 
     public static void error(String str)
@@ -43,31 +35,24 @@ public class TextAdventureServer extends ServerBase implements NotificationRecei
 	}
 	
 	
-    public void tellPlayer(String msg)
-	{
-		WordWriter ww = new WordWriter(stc.getTcpConnection());
-		ww.writeName("TextBoxAppend");
-		ww.writeString(msg);
-		ww.flush();
-	}
-    
 	
-	public TextAdventureServer(GlobalConfig config, Player player, ServerTcpConnection cc)
+	public ChatRoomServer()
 	{
-		super(config, player, cc);	
+		super();	
 	}
 	
-    public TextAdventureWorld createAndStoreNewGame(String worldName)
+	/*
+    public ChatRoomWorld createAndStoreNewGame(String worldName)
     {
-		DbRoot wdb=stc.findWorldsDb();
+		DbSubRoot wdb=stc.findOrCreateGameDb();
     	
     	// Create the new chat room
-    	TextAdventureWorld newMapAndNations = new TextAdventureWorld(wdb, worldName, player.getName());
+    	ChatRoomWorld newMapAndNations = new ChatRoomWorld(wdb, worldName, player.getName());
 		
     	// Let it generate its contents
     	try {
 			newMapAndNations.lockWrite();
-    		newMapAndNations.generateWorld();
+    		newMapAndNations.generateSelf();
 		}
 		finally
 		{
@@ -86,16 +71,17 @@ public class TextAdventureServer extends ServerBase implements NotificationRecei
    		createAndStoreNewGame(worldName);
 		return worldName;
     }
+    */
 	
-	public TextAdventureWorld findTextAdventureWorld(String name)
+	public ChatRoomWorld findChatRoom(String name)
 	{		
     	if (name==null)
     	{
-            debug("findTextAdventureWorld: name was null");
+            debug("findChatRoom: name was null");
     		return null;
     	}
     	
-    	DbRoot worldsDatabase = stc.findWorldsDb();
+    	DbSubRoot worldsDatabase = stc.findOrCreateGameDb();
 
 		if (worldsDatabase==null)
 		{
@@ -103,7 +89,7 @@ public class TextAdventureServer extends ServerBase implements NotificationRecei
 			return null;
 		}
     	
-		DbRoot ro = worldsDatabase.findDb(name);
+		DbSubRoot ro = worldsDatabase.findDb(name);
 		
 
 		if (ro==null)
@@ -112,21 +98,21 @@ public class TextAdventureServer extends ServerBase implements NotificationRecei
 		   	return null;
 		}
 			
-   		if (!(ro instanceof TextAdventureWorld))
+   		if (!(ro instanceof ChatRoomWorld))
    		{
-		   	stc.error("" + name+" was not a TextAdventureWorld");
+		   	stc.error("" + name+" was not a ChatRoomWorld");
 			return null;
 		}
 
 
-		return (TextAdventureWorld)ro;				
+		return (ChatRoomWorld)ro;				
 	}
-
+	
 	public void join(DbBase bo)
 	{
-		if (bo instanceof TextAdventureWorld)
+		if (bo instanceof ChatRoomWorld)
 		{
-			join((TextAdventureWorld)bo);
+			join((ChatRoomWorld)bo);
 		}
 		else
 		{
@@ -134,7 +120,7 @@ public class TextAdventureServer extends ServerBase implements NotificationRecei
 		}
 	}
 
-	protected void join(TextAdventureWorld bo)
+	protected void join(ChatRoomWorld bo)
 	{
 		try 
 		{
@@ -144,19 +130,14 @@ public class TextAdventureServer extends ServerBase implements NotificationRecei
 	
 			stc.alertBox("joining_world", "joining chat room "+ nap);
 	
-			stc.writeLine("openTextBox");
+			stc.writeLine("openChatRoom");  // This command is handled in on.js method onMessage
 	
 			stc.writeLine("TextBoxAppend \""+"Hello "+player.getName()+"!\"");
-			
+	
 	
 			w.addNotificationReceiver(this, 0);		
 			w.messageFromPlayer(player, "joined");
-			avatar = w.playerJoined(player);
-			
-			DbBase currentRoom=avatar.getContainingObj();
-			
-			tellPlayer("you are in "+ currentRoom.getName());
-		
+
 	  		for(;;)
 	  		{
 				String r = stc.readLine(15*60*1000);
@@ -207,19 +188,20 @@ public class TextAdventureServer extends ServerBase implements NotificationRecei
 	
 
     // We get here when client wants to enter chat room
+	/*
     protected void join(String chatRoomName)
     {
         debug("chatRoom: worldName \"" + chatRoomName+"\" playerName \"" + player.getName() +"\"");
         
         if (player!=null)
         {
-	  		w = findTextAdventureWorld(chatRoomName);
+	  		w = findChatRoom(chatRoomName);
 
 
 	  		if (w==null)
 	  		{
 	  			createAndStoreNewGame(chatRoomName);
-		  		w = findTextAdventureWorld(chatRoomName);  	
+		  		w = findChatRoom(chatRoomName);  	
 	  		}
 
 	  		if (w!=null)
@@ -237,21 +219,14 @@ public class TextAdventureServer extends ServerBase implements NotificationRecei
         }
 	        
         debug("chatRoom end");
-    }   
+    }
+    */
 
     
 	public int messageFromPlayer(String msg)
 	{
-		String cmd = WordReader.getWord(msg);
-		String argument = WordReader.getRemainingLine(msg);	
-		if (cmd.equals("say"))
-		{
-			w.messageFromPlayer(player,"Said: "+ argument);
-		}
-		else if (cmd.equals("look"))
-		{
-			
-		}
+		w.messageFromPlayer(player, msg);
+		
 		return 0;
 	}
 
@@ -262,7 +237,7 @@ public class TextAdventureServer extends ServerBase implements NotificationRecei
 		w.messageFromPlayer(player, "left");
 	}
 	
-	public void notify(int subscribersRef, int sendersRef)
+	public void notifyRef(int subscribersRef, int sendersRef)
 	{
 		for (;;)
 		{
@@ -278,7 +253,7 @@ public class TextAdventureServer extends ServerBase implements NotificationRecei
 				else
 				{
 					//cc.writeLine("TextBoxAppend \""+msg+"!\"");
-					WordWriter ww = new WordWriter(stc.getTcpConnection());
+					WordWriter ww = new WordWriterWebConnection(stc.getTcpConnection());
 					ww.writeName("TextBoxAppend");
 					ww.writeString(msg);
 					ww.flush();
@@ -291,6 +266,7 @@ public class TextAdventureServer extends ServerBase implements NotificationRecei
 
 		}
 	}
+
 	public void unlinkNotify(int subscribersRef)
 	{
 		try {
@@ -302,4 +278,26 @@ public class TextAdventureServer extends ServerBase implements NotificationRecei
 		}			
 	}
 
+	@Override
+	public WorldBase createWorld() {
+		return new ChatRoomWorld();
+	}
+
+	@Override
+	public void joinWorld() {	
+	}
+
+	/*
+	@Override
+	public boolean need2dSupport()
+	{
+		return true;
+	}
+
+	@Override
+	public boolean need3dSupport()
+	{
+		return false;
+	}*/
+	
 }

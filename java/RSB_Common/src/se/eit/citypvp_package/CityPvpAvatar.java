@@ -8,7 +8,7 @@ public class CityPvpAvatar extends CityPvpEntity {
 	
 	RsbRoundBuffer rsbRoundBuffer=null;
 	
-	public CityPvpAvatar(DbBase parent, String name) 
+	public CityPvpAvatar(DbContainer parent, String name) 
 	{
 		super(parent, name);	
 
@@ -58,7 +58,7 @@ public class CityPvpAvatar extends CityPvpEntity {
 
 		// find the round buffer and post message to it
 		RsbRoundBuffer erb = findMsgRoundBuffer();
-		erb.postMessage(str);
+		erb.postMessageToThis(str);
 		setUpdateCounter();
 	}
 

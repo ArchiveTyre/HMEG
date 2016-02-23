@@ -1,23 +1,31 @@
+// TickThread.java
+//
+// Copyright (C) 2016 Henrik Björkman (www.eit.se/hb)
+// License: www.eit.se/rsb/license
+//
+// History:
+// Created by Henrik 2015 
+
+
 package se.eit.rsb_server_pkg;
 
 import java.text.SimpleDateFormat;
 
 import se.eit.db_package.*;
-import se.eit.rsb_srv_main_pkg.GlobalConfig;
+import se.eit.rsb_factory_pkg.GlobalConfig;
 import se.eit.web_package.*;
 
 
 
 public class TickThread implements Runnable
 {
-	static final int desired_frame_rate = 100; // in ms
 	protected static SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz"); // http://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html
 
 	public int timeAcceleration=1; // 0 will pause all games
 	
-	long sim_frame_time;
+	long simTime;
 
-	DbSuperRoot db=null;
+	DbTickList db=null;
 
 	boolean done=false;
 
@@ -25,7 +33,7 @@ public class TickThread implements Runnable
 	
 	GlobalConfig config;
 	
-	long nextAutoSaveTime=0;
+	//long nextAutoSaveTime=0;
 	
 	public static String className()
 	{	
@@ -33,11 +41,11 @@ public class TickThread implements Runnable
 		return DbBase.class.getSimpleName();	
 	}
 	
-	public TickThread(GlobalConfig config, DbSuperRoot db) 
+	public TickThread(GlobalConfig config, DbTickList db) 
 	{
 		this.db=db;
 		this.config=config;
-		nextAutoSaveTime=System.currentTimeMillis()+config.MinutesBetweenAutoSave*60*1000;;
+		//nextAutoSaveTime=System.currentTimeMillis()+config.MinutesBetweenAutoSave*60*1000;;
 	}
 	
 	public void debug(String str)
@@ -61,47 +69,50 @@ public class TickThread implements Runnable
 	{
 		while(!done) 
 		{
-			final long cur_time=System.currentTimeMillis();
-			final long time_to_wait=sim_frame_time - cur_time;
+			final long curTime=System.currentTimeMillis();
+			final long timeToWait=simTime - curTime;
+			final int desiredFrameRateMs = db.get_desired_frame_rate_ms();
 			
-			if (time_to_wait>desired_frame_rate*2)			
+			if (timeToWait>desiredFrameRateMs*2)			
 			{
-				error("frame rate in future");
-				myWait((int)desired_frame_rate);
-				sim_frame_time = cur_time + desired_frame_rate;
+				// This can happen if desiredFrameRateMs was changed recently.
+				debug("frame rate in future "+ timeToWait + " "+desiredFrameRateMs);
+				myWait((int)desiredFrameRateMs);
+				simTime = curTime + desiredFrameRateMs;
 			}
-			else if (time_to_wait>0)
+			else if (timeToWait>0)
 			{
 				// The normal case
-				myWait((int)time_to_wait);				   
-				sim_frame_time += desired_frame_rate;
+				myWait((int)timeToWait);				   
+				simTime += desiredFrameRateMs;
 			}
-			else if (time_to_wait>-desired_frame_rate)
+			else if (timeToWait>-desiredFrameRateMs)
 			{
 				// slightly behind, skip wait but update sim_frame_time normally
-				//cc.myWait(1);
-				sim_frame_time += desired_frame_rate;			
+				simTime += desiredFrameRateMs;			
 			}
 			else
 			{
 				// Far behind, skip sim_frame_time forward
-				debug("frame rate behind");
-				//cc.myWait(1);
-				sim_frame_time = cur_time + desired_frame_rate/2;
+				debug("frame rate far behind");
+				simTime = curTime + desiredFrameRateMs/2;
 			}
 
 			//debug("tick "+cur_time+" "+sim_frame_time+" "+System.currentTimeMillis());
-			//db.tickRecursiveMs(desired_frame_rate*timeAcceleration);
-			sim_tick_time += desired_frame_rate*timeAcceleration;
+			//db.tickRecursiveMs(desired_frame_rate_ms*timeAcceleration);
+			sim_tick_time += desiredFrameRateMs*timeAcceleration;
 			db.tickMsSuper(sim_tick_time);
 			
+			/*
 			// Is it time for auto save?
 			if ((cur_time-nextAutoSaveTime)>0)
 			{
 				System.out.println("auto save "+ sdf.format(cur_time));
-				db.saveRecursive(config);
+				//db.setGlobalConfig(config);
+				db.saveRecursive();
 				nextAutoSaveTime=cur_time+config.MinutesBetweenAutoSave*60*1000;
 			}
+			*/
 		}
 	}
 	

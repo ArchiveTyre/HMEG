@@ -1,77 +1,63 @@
 //World.java
 //
-//Copyright (C) 2013 Henrik Björkman www.eit.se
+// Copyright (C) 2016 Henrik Björkman (www.eit.se/hb)
+// License: www.eit.se/rsb/license
 //
 //History:
 //Adapted for use with RSB. Henrik 2013-05-04
 
 
-package se.eit.TextAdventure;
+package se.eit.rsb_package;
+
 import se.eit.db_package.*;
-
-import se.eit.rsb_package.*;
-
-//import se.eit.rsb_package.*;
 import se.eit.web_package.*;
 
 
+// TODO This is probably outdated and not used any more
 
-
-public class TextAdventureWorld extends WorldBase {
+public class ChatRoomWorld extends WorldBase {
 	
 	
-	protected int turn=0;
+	int turn=0;
 
 	//StringFifo stringFifo;	
 	
-	protected long tickTimeMs = 0;
 	
 	RoundBuffer roundBuffer=new RoundBuffer(32);
 	
 	public static String className()
 	{	
 		// http://stackoverflow.com/questions/936684/getting-the-class-name-from-a-static-method-in-java		
-		return TextAdventureWorld.class.getSimpleName();	
+		return ChatRoomWorld.class.getSimpleName();	
 	}
 
 
-	public TextAdventureWorld(DbBase parent, String name, String createdBy) 
+	public ChatRoomWorld(DbContainer parent, String name, String createdBy) 
 	{
 		super(parent);
-		setName(name);
-		setCreatedBy(createdBy);
+		this.regName(name);
+		this.setCreatedBy(createdBy);
 		
-		
-		// we don't generate here, the caller must write lock and call generateWorld in a separate call.
-		//generateWorld();
+		// we don't generate here, the caller must write lock and call generateSelf in a separate call.
+		//generateSelf();
 	}
 
-	public TextAdventureWorld()
+	public ChatRoomWorld()
 	{	
 		super();
 	}
 
 	
-	public void generateWorld()
+	public void generateSelf()
 	{
 		
 		debug("creating new world " + getNameAndPath("/"));
  		
 		
 		//WorldRoot2d worldRoot = new WorldRoot2d();
-		//worldRoot.generateWorld();
+		//worldRoot.generateSelf();
 		//worldRoot.registerSelfInDbIdListAndAdd(this);
-		
-		
-		// TODO: Here we need to create the rooms.
-		
-		TextAdventureRoom rootRoom = new TextAdventureRoom(this, "rootRoom");
-		
-		TextAdventureRoom spawnRoom = new TextAdventureRoom(rootRoom, "spawnRoom");
-		TextAdventureRoom secondRoom = new TextAdventureRoom(rootRoom, "secondRoom");
-		spawnRoom.connect(secondRoom, "north");
-		secondRoom.connect(spawnRoom, "south");
-		
+
 	}
 	
 	
@@ -131,13 +117,13 @@ public class TextAdventureWorld extends WorldBase {
 	}
 	*/
 
-	/*@Override
-	public void tickSelfMs(int deltaMs)
+	/*
+	@Override
+	public void tickMs(int deltaMs)
 	{
 		//final long currentTime=System.currentTimeMillis();
-		super.tickSelfMs(deltaMs); // This will do tick for all non DbIdObj. The objects that are subclasses of DbIdObj get their tick from DbIdList instead.	
-	}
-	*/
+		super.tickMs(deltaMs); // This will do tick for all non DbIdObj. The objects that are subclasses of DbIdObj get their tick from DbIdList instead.	
+	}*/
 
 	
 	// Find a room, optionally a room with a given name.
@@ -180,79 +166,39 @@ public class TextAdventureWorld extends WorldBase {
 	}
 	*/
 
-    public void messageFromPlayer(Player player, String msg)
+	public void messageFromPlayer(PlayerData player, String msg)
 	{		
 		//stringFifo.put(msg);
 		debug("messageFromPlayer "+player.getName()+" "+msg);
 		
-		roundBuffer.put(player.getName()+" "+msg);
+		roundBuffer.put(player.getName()+": "+msg);
 		
-		/*
-		for (int i=0;i<conncetedPlayers.length;i++)
+		/*for (int i=0;i<conncetedPlayers.length;i++)
 		{
 			if (conncetedPlayers[i]!=null)
 			{
 				conncetedPlayers[i].notify(conncetedPlayersRef[i], this.getId());
 			}
-		}
-		*/
-		notifySubscribers(this.getId());
-		
+			
+		}*/
+        notifySubscribers(this.getId());
+
 	}
 
-	public DbBase playerJoined(Player player)
-	{
-		// Har spelaren en avatar redan
-		DbBase avatar = this.findDbNamedRecursive(player.getName(), 999);						
+	
 
-		if (avatar==null)
-		{
-			// Ingen hittad, skapa en ny,
-			DbBase spawnRoom = this.findDbNamedRecursive("spawnRoom", 5);	
-			
-			if (spawnRoom==null)
-			{
-				error("did not find spawn room");
-				
-			}
-			else
-			{
-			
-			    avatar = new TextAdventureAvatar(spawnRoom , player.getName());
-			}
-		}
-		
-		return avatar;
-	}
-
-
+	
 	public String getMsg(int updateCounter)
 	{		
 		return roundBuffer.get(updateCounter);
 	}
-
-
-
-	@Override
-	public void tickMsCallback(long tickTimeMs)
-	{
-		/*
-		final long deltaTimeMs = tickTimeMs - this.tickTimeMs;
-		this.tickTimeMs += deltaTimeMs;
-		
-		if (notificationDataList.size()!=0)
-		{
-			// TODO: Here we do tick on all objects in this game regardless if they need it or not. We could use CPU more efficiently...
-			for (DbIdObj dio : idList)
-			{
-				if (dio instanceof TextAdventureEntity)
-				{
-					TextAdventureEntity tae = (TextAdventureEntity)dio;
-					tae.tickSelfMs(deltaTimeMs);
-				}
-			}
-		}
-		*/		
-	}
 	
+
+	// This returns the name of the server object that clients shall use to play this world.
+	@Override
+	public String serverForThisWorld()
+	{
+		return "ChatRoomServer";
+	}
+
 }
