@@ -41,9 +41,15 @@ HmegWin.prototype.init=function()
 	this.msgWin = new HmegWinMsg(this);
 }	
 
-// This creates the main web page for empire game
+// This creates (make HTML layout) for the main window page of this game
+// The main window contains 3 sub windows (AKA DIVs)
+// * header on the to of the window
+// * middle, different things can be shown here such as the world map.
+// * messages text area in the lower part
 HmegWin.prototype.defineDiv=function()
 {
+	console.log("defineDiv");
+
 	var msgAreaHeight=120;
 	var scrollbarSize=8;
 
@@ -83,6 +89,10 @@ HmegWin.prototype.defineDiv=function()
 	$("body").append(newPage);
 
 
+		
+		
+	// Remember our main window	
+	//rootDiv.element = document.getElementById('myCanvas');
 
 }
 
@@ -135,8 +145,6 @@ HmegWin.prototype.drawDiv=function()
 	this.msgWin.drawWin();
 }
 
-	
-// Is this used?
 HmegWin.prototype.empWinConsole=function(srcId)
 {
 	var theSrcTextBox = document.getElementById(srcId);
@@ -147,11 +155,12 @@ HmegWin.prototype.empWinConsole=function(srcId)
 	
 	
 
+// This handles all input from server when this game is running in server.	
 HmegWin.prototype.onMessageArg=function(arg)
 {
 	var i=0;
-        var cmd=arg[0];
-        var reply='';
+	var cmd=arg[0];
+	var reply='';
 
 
 	//console.log("onMessageArg: '" +arg+"'"); 
@@ -165,27 +174,36 @@ HmegWin.prototype.onMessageArg=function(arg)
 		// Message was handled by mirror
 	}
 	else if (cmd=="mirrorUpdated")
-	{			
+	{
+		// The server sends this when it has finished sending a batch of updates.
+		// When this is received it it time to redraw the map.			
 		if (this.hmegDb!=null)
 		{
 			this.drawDiv();
 		}
 		doSend('mirrorAck ' + arg[1]);
 	}
-	else if (cmd=="mirrorWorld") // TODO: this command should be moved to mirror. But shall it be in MirrorDb or a new MirrorWin.js? It creates a new EmpDb which is a problem in moving it.
-	{
-		this.hmegDb=new EmpDb();
-		this.subInputState = this.hmegDb;
-	}
 	else if (cmd=="return")
 	{
 		empireClose();
 	}
-	else if (cmd=="empConsoleAppend")
+	else if (cmd=="consoleMessage")
 	{
 		this.msgWin.textBoxAppend(arg[1]);
 	}
-	else if (cmd=="hmegShow")
+	else if (cmd=="empConsoleAppend") // Deprecated, use consoleMessage
+	{
+		this.msgWin.textBoxAppend(arg[1]);
+	}
+	else if (cmd=="showWorld")
+	{
+		// When this command is received client will define the main game window (and its initial sub windows AKA div)			
+		if (this.hmegDb!=null)
+		{
+			this.defineAndDrawPage();
+		}
+	}
+	else if (cmd=="hmegShow") // Deprecated, use showWorld
 	{			
 		if (this.hmegDb!=null)
 		{
@@ -194,14 +212,10 @@ HmegWin.prototype.onMessageArg=function(arg)
 			this.defineAndDrawPage();
 		}
 	}
-	else if (cmd=="empWorldClose")
-	{			
-		console.log("onMessageArg: this.empWorldClose:"); 
-		empireClose();
-	}
 	else if (cmd=="avatarId")
-	{			
-		this.avatarId = parseInt(arg[1]);	
+	{
+		// This tells the client which object it shall view the world from.
+		this.avatarId = parseInt(arg[1]);
 	}
 	else
 	{

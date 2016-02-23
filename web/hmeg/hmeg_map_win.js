@@ -26,6 +26,8 @@ function HmegMapWin(parentWin)
 }
 
 
+// This is called when this div shall be added to the page.
+// NOTE this only sets up the page. When it is time to draw the div drawDiv is called.
 HmegMapWin.prototype.defineDiv=function(divSize)
 {
 	this.initRoom();
@@ -78,6 +80,7 @@ HmegMapWin.prototype.defineDiv=function(divSize)
 	return newPage;		
 }
 
+// After all "div" have been setup (after defineDiv but before drawDiv) this is called so that each div can register and remember its elements etc.
 HmegMapWin.prototype.addEventListenersDiv=function()
 {
 	console.log("addEventListenersDiv");
@@ -104,7 +107,8 @@ HmegMapWin.prototype.showWorldMapSectors=function(context, hmegRoom)
 
 
 
-	// This is for regular blocks.
+	// This is for regular blocks of the current room
+	// Loop x & y coordinates
 	for (var x=0; x<hmegRoom.xSectors; x++)
 	{
 		
@@ -150,8 +154,8 @@ HmegMapWin.prototype.showWorldMapSectors=function(context, hmegRoom)
 	}
 
 
-	// This is for entities
-	
+	// This is for entities residing in the current room
+	// if any loop all children
 	var cl = hmegRoom.children;
 	if (cl!=null)
 	{
@@ -169,8 +173,10 @@ HmegMapWin.prototype.showWorldMapSectors=function(context, hmegRoom)
 				var xy=this.translateBlockToCanvas(s.x, s.y);	
 
 
+				// is it a room?
 				if (s instanceof HmegRoom)
 				{
+					// Rooms will have one image that is to be drawn to represent the room (even if the room contains other objects) 
 					context.fillStyle="#c0c0c0";				
 					context.fillRect(xy.x, xy.y, this.sectorWidth*s.outerX, this.sectorHeight*s.outerY);				
 
@@ -242,6 +248,7 @@ HmegMapWin.prototype.initRoom=function()
 }
 
 
+// This is called when this div shall be drawn (or redrawn)
 HmegMapWin.prototype.drawDiv=function()
 {
 	//console.log("drawDiv begin");

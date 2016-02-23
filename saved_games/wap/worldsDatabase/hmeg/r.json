@@ -1,6 +1,6 @@
 
 { 
-	"versionInfo" : "www.eit.se/rsb/0.9" , "HmegWorld" :[[1,"b",0,776,"a",1456256369986,0,"","","","","","",0],[
+	"versionInfo" : "www.eit.se/rsb/0.9" , "HmegWorld" :[[3,"r",0,422,"a",1456259355007,0,"","","","","","",0],[
 	{ 
 		"RsbLong":[[0,"_gameTime",1,0]]
 	} 
@@ -12,7 +12,7 @@
 		} 
 		,
 		{ 
-			"CityPvpAvatar":[[1,"a",4,13,15,20,13,0,0]]
+			"CityPvpAvatar":[[1,"a",4,12,9,20,13,0,2]]
 		} 
 		] ]
 	} 
