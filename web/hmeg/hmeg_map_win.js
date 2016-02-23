@@ -30,6 +30,7 @@ function HmegMapWin(parentWin)
 // NOTE this only sets up the page. When it is time to draw the div drawDiv is called.
 HmegMapWin.prototype.defineDiv=function(divSize)
 {
+	console.log("defineDiv: x="+divSize.x+", y="+divSize.y);
 	this.initRoom();
 
 	//this.setScrollToHome();
@@ -162,6 +163,7 @@ HmegMapWin.prototype.showWorldMapSectors=function(context, hmegRoom)
 		var i;
 		for(i in cl)
 		{
+			// Only object of type HmegEntity need to be shown (others ignored)
 			if (cl[i] instanceof HmegEntity)
 			{
 				var s=cl[i];
@@ -172,6 +174,7 @@ HmegMapWin.prototype.showWorldMapSectors=function(context, hmegRoom)
 				
 				var xy=this.translateBlockToCanvas(s.x, s.y);	
 
+				// TODO perhaps the if room below can be moved into method showSelfContextXY?
 
 				// is it a room?
 				if (s instanceof HmegRoom)
@@ -492,6 +495,5 @@ HmegMapWin.prototype.setScrollToHome=function()
 			}
 		}		
 	}	
-				
 }
 

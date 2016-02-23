@@ -411,6 +411,5 @@ HmegWinInventory.prototype.setScrollToHome=function()
 			}
 		}		
 	}	
-				
 }
 

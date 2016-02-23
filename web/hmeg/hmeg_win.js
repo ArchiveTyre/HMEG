@@ -48,10 +48,10 @@ HmegWin.prototype.init=function()
 // * messages text area in the lower part
 HmegWin.prototype.defineDiv=function()
 {
-	console.log("defineDiv");
+	console.log("defineDiv: w="+window.innerWidth+", h="+window.innerHeight);
 
 	var msgAreaHeight=120;
-	var scrollbarSize=8;
+	var scrollbarSize=32;
 
 	
 	if (msgAreaHeight*4>window.innerHeight)
@@ -96,18 +96,15 @@ HmegWin.prototype.defineDiv=function()
 
 }
 
-HmegWin.prototype.defineAndDrawPage=function()
-{
-			this.defineDiv();
-			this.addEventListenersDiv();
-			this.drawDiv();
-}	
 
 
 HmegWin.prototype.addEventListenersDiv=function()
 {
 	this.subWin.addEventListenersDiv();
 	this.msgWin.addEventListenersDiv();
+
+	// If game need direct input from keyboard this is a good place to setup the callback.
+	// This game need direct input from keyboard
 	var t=this;
 	document.onkeypress=function(event)
 	{
@@ -144,6 +141,14 @@ HmegWin.prototype.drawDiv=function()
 	this.subWin.drawDiv();
 	this.msgWin.drawWin();
 }
+
+HmegWin.prototype.defineAndDrawPage=function()
+{
+	this.defineDiv();
+	this.addEventListenersDiv();
+	this.drawDiv();
+}
+
 
 HmegWin.prototype.empWinConsole=function(srcId)
 {
